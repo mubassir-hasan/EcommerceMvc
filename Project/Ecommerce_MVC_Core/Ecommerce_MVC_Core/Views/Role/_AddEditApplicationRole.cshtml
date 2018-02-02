@@ -1,0 +1,23 @@
+﻿@model Ecommerce_MVC_Core.ViewModel.RolesViewModel
+<form asp-action="AddEditApplicationRole" role="form">
+    @await Html.PartialAsync("_ModalHeader", new ModalHeader { Heading = $"{(String.IsNullOrEmpty(Model.Id) ? "Add" : "Edit")} Application Role" })
+
+    <div class="modal-body form-horizontal">
+        
+            <div class="form-group">
+                <label asp-for="Name" class="col-md-4 form-control"></label>
+                <div class="col-lg-8 ">
+                    <input asp-for="Name" class="form-control" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description" class="col-md-4 form-control"></label>
+                <div class="col-lg-8 ">
+                    <input asp-for="Description" class="form-control" />
+                </div>
+            </div>
+
+    </div>
+    @await Html.PartialAsync("_ModalFooter", new ModalFooter { })
+</form>

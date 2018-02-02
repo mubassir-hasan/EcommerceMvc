@@ -1,0 +1,40 @@
+﻿@model Ecommerce_MVC_Core.ViewModel.PaymentMethodViewModel
+<form asp-action="AddEditPaymentMethod" id="frm">
+    <div class="form-horizontal">
+        @await Html.PartialAsync("_ModalHeader", new ModalHeader { Heading = $"{(Model.Id <=0 ? "Add" : "Edit")} Payment Method" })
+        <hr />
+        <div class="text-danger" asp-validation-summary="ModelOnly"></div>
+
+        <div class="form-group">
+            <label asp-for="Name" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Name" class="form-control" autofocus="" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <textarea asp-for="Description" class="form-control"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Processor" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Processor" class="form-control" autofocus="" />
+                <span asp-validation-for="Processor" class="text-danger"></span>
+            </div>
+        </div>
+
+
+
+    </div>
+    @await Html.PartialAsync("_ModalFooter", new ModalFooter { })
+</form>
+
+<script>
+    $.validator.unobtrusive.parse("#frm");
+</script>

@@ -1,0 +1,102 @@
+﻿@model Ecommerce_MVC_Core.ViewModel.ProductImageViewModel
+@{
+    ViewData["Title"] = "AddEditProductImage";
+}
+<form asp-action="AddEditProductImage" id="frmBrand" enctype="multipart/form-data">
+    <div class="form-horizontal">
+        <h1>Add Product Image</h1> 
+        <hr />
+        <div class="text-danger" asp-validation-summary="ModelOnly"></div>
+
+        <div class="form-group">
+            <label asp-for="CategoryId" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <select asp-for="CategoryId" autofocus="" asp-items="@Model.Categories" class="form-control"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="ProductId" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input type="text" id="txtProduct" class="form-control" autofocus="" />
+
+                <input asp-for="ProductId" type="text" id="txtProductId" class="form-control" />
+                <span asp-validation-for="ProductId" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Title" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ImagePath" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <div>  
+                    <input type="file" asp-for="ImageFile" title="search image" id="file" onchange="show(this)" /> 
+                </div> 
+                <div style="padding-top: 7px"> <img id = "user_img"  
+                height = "100"  
+                width = "100"  
+                style = "border:solid" /> </div>
+                <span asp-validation-for="ImagePath" class="text-danger"></span>
+            </div>
+        </div>
+
+
+
+    </div>
+    <input type="submit" class="btn btn-success" value="Add" />
+</form>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="/lib/jquery/dist/jquery.js"></script>
+<script src="/js/jquery-ui.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#txtProduct").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/ProductImage/GetProducts",
+                    type: "GET",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            console.log("Label " + item.label);
+                            console.log("value " + item.val);
+                            return { label: item.label, value: item.val };
+                        }))
+
+                    }
+                })
+            },
+
+            select: function (event, ui) {
+
+                $('#txtProductId').val(ui.item.value);
+                $('#txtProduct').val(ui.item.label);
+                return false;
+            },
+            messages: {
+                noResults: "", results: function (resultsCount) { }
+            }
+        });
+    })
+</script>
+
+<script type="text/javascript">  
+    function show(input) {  
+        if (input.files && input.files[0]) {  
+            var filerdr = new FileReader();  
+            filerdr.onload = function (e) {  
+                $('#user_img').attr('src', e.target.result);  
+            }  
+            filerdr.readAsDataURL(input.files[0]);  
+        }  
+    }  
+</script>  
+

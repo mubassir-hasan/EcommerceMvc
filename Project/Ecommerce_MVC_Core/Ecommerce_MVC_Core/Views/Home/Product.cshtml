@@ -1,0 +1,49 @@
+﻿@model IEnumerable<Ecommerce_MVC_Core.ViewModel.ProductListViewModel>
+@{
+    ViewData["Title"] = "Product";
+}
+
+<div class="container-fluid">
+    <div class="col-md-2">
+        <h1>Hot Deals</h1>
+    </div>
+    <div class="col-md-8">
+        <div class="single-pro">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-3 product-men">
+                    <div class="men-pro-item simpleCart_shelfItem">
+                        <div class="men-thumb-item">
+                            <img src="~/uploads/ProductImages/@item.ImagePath" alt="@item.ImageTitle" class="pro-image-front">
+                            <img src="~/uploads/ProductImages/@item.SecondImagePath" alt="@item.ImageTitle" class="pro-image-back">
+                            <div class="men-cart-pro">
+                                <div class="inner-men-cart-pro">
+                                    <a data-toggle="modal" asp-controller="Home" asp-action="QuickViewProduct" asp-route-product="@item.Id" data-target="#modal-popUP"  class="link-product-add-cart">Quick View</a>
+                                </div>
+                            </div>
+                            <span class="product-new-top">@item.CategoryName</span>
+
+                        </div>
+                        <div class="item-info-product ">
+                            <h4><a asp-controller="Home" asp-action="ProductDetails" asp-route-product="@item.Id">@item.Name</a></h4>
+                            <div class="info-product-price">
+                                <span class="item_price">@item.FinalPrice</span>
+                                <del>@item.Price</del>
+                                <i>@item.Discount%</i>
+                            </div>
+                            
+                            <a data-toggle="modal" asp-controller="Home" asp-action="AddToCart" asp-route-product="@item.Id" data-target="#modal-popUP"  class="btn btn-primary">Add to Cart</a>
+                                
+                          
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-md-2">
+        <h1>Best Selling</h1>
+    </div>
+</div>
+@Html.Partial("_Modal", new BootstrapModel { ID = "modal-popUP", AreaLabeledId = "modal-popUP-label", Size = ModalSize.Medium })

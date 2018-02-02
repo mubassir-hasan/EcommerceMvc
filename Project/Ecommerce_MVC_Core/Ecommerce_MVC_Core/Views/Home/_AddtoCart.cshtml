@@ -1,0 +1,51 @@
+﻿@model Ecommerce_MVC_Core.ViewModel.Public.AddToCartViewModel
+<form asp-action="AddToCart" id="frmBrand">
+    <div class="form-horizontal">
+        @await Html.PartialAsync("_ModalHeader", new ModalHeader { Heading = "Cart" })
+        <hr />
+        <div class="text-danger" asp-validation-summary="ModelOnly"></div>
+        <input type="hidden" asp-for="ProductName" />
+        <input type="hidden" asp-for="ProductId" />
+
+        <div class="form-group">
+            <label class="col-md-3 control-label">Product</label>
+            <div class="col-md-4">
+               <label>Quantity</label>
+            </div>
+            <label class="col-md-2 control-label">Total</label>
+           
+        </div>
+
+        <div class="form-group">
+            <label class="col-md-3 control-label">@Model.ProductName</label>
+            <div class="col-md-5">
+                <input id="quantity" asp-for="Quantity" class="form-control" autofocus="" />
+            </div>
+            <div class="col-md-2">
+                <input type="hidden" id="price" value="@Model.FinalPrice" />
+                <input type="hidden" id="finalPrice" asp-for="FinalPrice"/>
+                <label id="total">@Model.FinalPrice</label>
+            </div>
+        </div>
+
+
+
+
+
+    </div>
+    @await Html.PartialAsync("_ModalFooter", new ModalFooter {SubmitButtonText = "Add To Cart"})
+</form>
+
+<script>
+    $.validator.unobtrusive.parse("#frmBrand");
+</script>
+<script>
+    $(document).ready(function(){
+        var qty = $("#quantity");
+        qty.keyup(function(){
+            var total=isNaN(parseInt(qty.val()* $("#price").val())) ? 0 :(qty.val()* $("#price").val())
+            $("#finalPrice").val(total);
+            document.getElementById('total').innerHTML = total;
+        });
+    });
+</script>

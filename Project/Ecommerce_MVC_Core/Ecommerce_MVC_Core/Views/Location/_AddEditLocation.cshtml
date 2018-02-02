@@ -1,0 +1,108 @@
+﻿@using Ecommerce_MVC_Core.Controllers.Admin
+@model Ecommerce_MVC_Core.ViewModel.LocationViewModel
+
+<form asp-action="AddEditLocation" id="frm">
+    <div class="form-horizontal">
+        @await Html.PartialAsync("_ModalHeader", new ModalHeader { Heading = $"{(Model.Id <= 0 ? "Add" : "Edit")} Brand" })
+        <hr />
+        <div class="text-danger" asp-validation-summary="ModelOnly"></div>
+
+        <div class="form-group">
+            <label asp-for="Name" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Name" class="form-control" autofocus="" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Latitude" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Latitude" class="form-control" autofocus="" />
+                <span asp-validation-for="Latitude" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Longditude" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Longditude" class="form-control" autofocus="" />
+                <span asp-validation-for="Longditude" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Pram" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Pram" class="form-control" autofocus="" />
+                <span asp-validation-for="Pram" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Charge" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Charge" class="form-control" autofocus="" />
+                <span asp-validation-for="Charge" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="CountryId" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <select asp-for="CountryId" id="CountryId" asp-items="@Model.Countries" class="form-control"></select>
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+        
+        
+        <div class="form-group">
+            <label asp-for="CityId" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <select asp-for="CityId" id="CityId" asp-items="@Model.Cities" class="form-control"></select>
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+            
+               
+            
+        
+
+    </div>
+    @await Html.PartialAsync("_ModalFooter", new ModalFooter { })
+</form>
+
+<script>
+    $.validator.unobtrusive.parse("#frm");
+</script>
+
+<script type="text/javascript">
+    
+    $(document).ready(function() {
+        
+        $("#CountryId").change(function() {
+            $("#CityId").empty();
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetCity", "Location")',
+                dataType: 'json',
+                data: { id: $("#CountryId").val() },
+                
+                success: function(states) {
+
+                    $.each(states,
+                        function(i, items) {
+                            console.log(items);
+                            $("#CityId").append('<option value="' + items.value + '">' + items.text + '</option>');
+
+                        });
+                },
+                error: function(ex) {
+                    alert('Failed. ' + ex);
+                }
+            });
+            return false;
+        });
+    });
+</script>
+

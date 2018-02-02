@@ -1,0 +1,18 @@
+@model Ecommerce_MVC_Core.BootstrapModal.ModalFooter
+
+
+<div class="modal-footer">
+    <button data-dismiss="modal" id="@Model.CancelButtonID" class="btn btn-default" type="button">@Model.CancelButtonText</button>
+    @if (!Model.OnlyCancelButton)
+    {
+        <button class="btn btn-success al" id="@Model.SubmitButtonID" type="submit">
+            @Model.SubmitButtonText
+        </button>
+    }
+</div> 
+<script>
+    $(".al").on("click", function() {
+        $(".alert").removeClass("in").show();
+        $(".alert").delay(600).addClass("in").fadeOut(5000);
+    });
+</script>

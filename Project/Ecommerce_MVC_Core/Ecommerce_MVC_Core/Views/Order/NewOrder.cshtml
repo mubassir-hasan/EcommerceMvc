@@ -1,0 +1,200 @@
+﻿@model Ecommerce_MVC_Core.ViewModel.Public.NewOrderViewModel
+@{
+    ViewData["Title"] = "New Order";
+}
+<link href="~/css/public/fixedTable.css" rel="stylesheet" />
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12 col-md-10 col-md-offset-1">
+            <table class="table table-fixed">
+                <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th class="text-center">Price</th>
+                    <th class="text-center">Total</th>
+                    <th> </th>
+                </tr>
+                </thead>
+                <tbody>
+                @{
+                    var product = Model.OrderDetailsList.ToList();
+                    for (int i = 0; i < product.Count; i++)
+                    {
+                        <tr>
+                            <td class="col-sm-8 col-md-6">
+                                <div class="media">
+                                    <a class="thumbnail pull-left" href="#"> <img class="media-object" src="~/uploads/ProductImages/@product[i].ImagePath" style="width: 72px; height: 72px;"> </a>
+                                    <div class="media-body" style="padding-left: 10px;">
+                                        <h4 class="media-heading"><a asp-controller="Home" asp-action="ProductDetails" asp-route-product="@product[i].ProductId">@product[i].ProductName</a></h4>
+                                        <h5 class="media-heading"> by <a href="#">@product[i].BrandName</a></h5>
+
+                                        @if (product[i].Stock > 0)
+                                        {
+                                            <span> Status: </span><span class="text-success">
+                                                                      <strong>In Stock</strong>
+
+                                                                  </span>
+                                        }
+                                        else
+                                        {
+                                            <span> Status: </span><span class="text-danger">
+                                                                      <strong>Stock Out</strong>
+
+                                                                  </span>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="col-sm-1 col-md-1" style="text-align: center">
+                                @product[i].Quantity
+
+
+                            </td>
+                            <td class="col-sm-1 col-md-1 text-center"><strong class="price">@product[i].FinalPrice</strong></td>
+                            <td class="col-sm-1 col-md-1 text-center"><strong class="total">@product[i].FinalPrice</strong></td>
+                                
+                        </tr>
+                    }
+                }
+
+
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="row">
+        <form asp-action="NewOrder" method="post" class="form-horizontal">
+            <div class="text-danger" asp-validation-summary="ModelOnly"></div>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label">Country</label>
+                <div class="col-md-5">
+                    <select id="CountryId" asp-items="@Model.Countries" class="form-control"></select>
+
+                    <span asp-validation-for="Countries" class="text-danger"></span>
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+                <label class="col-md-2 control-label">City</label>
+                <div class="col-md-5">
+                    <select id="CityId" asp-items="@Model.Cities" class="form-control"></select>
+
+                    <span asp-validation-for="Cities" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-md-2 control-label">Location</label>
+                <div class="col-md-5">
+                    <select id="LocationId" asp-for="LocationId" asp-items="@Model.Locations" class="form-control"></select>
+
+                    <span asp-validation-for="Locations" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="DaliveryAddress" class="col-md-2 control-label"></label>
+                <div class="col-md-5">
+                    <textarea asp-for="DaliveryAddress" class="form-control" rows="5"></textarea>
+                </div>
+                <div class="col-md-2">
+                    <span asp-validation-for="DaliveryAddress" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="PaymentMethodId" class="col-md-2 control-label"></label>
+                <div class="col-md-5">
+                    <select asp-for="PaymentMethodId" class="form-control" asp-items="@Model.PaymentMethods"></select>
+                </div>
+                <div class="col-md-2">
+                    <span asp-validation-for="PaymentMethodId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Remarks" class="col-md-2 control-label"></label>
+                <div class="col-md-5">
+                    <textarea asp-for="Remarks" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="col-md-2">
+                    <span asp-validation-for="Remarks" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-2">
+                    
+                </div>
+                <div class="col-md-5">
+                    <input type="submit" value="Order Now" class="btn btn-info"/>
+                </div>
+                <div class="col-md-2">
+                    
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function() {
+
+        $("#CountryId").change(function() {
+            $("#CityId").empty();
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetCity", "Location")',
+                dataType: 'json',
+                data: { id: $("#CountryId").val() },
+
+                success: function(states) {
+
+                    $.each(states,
+                        function(i, items) {
+                            console.log(items);
+                            $("#CityId").append('<option value="' + items.value + '">' + items.text + '</option>');
+
+                        });
+                },
+                error: function(ex) {
+                    alert('Failed. ' + ex);
+                }
+            });
+            return false;
+        });
+
+        $("#CityId").change(function() {
+            $("#LocationId").empty();
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetLocation", "Location")',
+                dataType: 'json',
+                data: { id: $("#CityId").val() },
+
+                success: function(states) {
+
+                    $.each(states,
+                        function(i, items) {
+                            console.log(items);
+                            $("#LocationId").append('<option value="' + items.value + '">' + items.text + '</option>');
+
+                        });
+                },
+                error: function(ex) {
+                    alert('Failed. ' + ex);
+                }
+            });
+            return false;
+        });
+    });
+</script>

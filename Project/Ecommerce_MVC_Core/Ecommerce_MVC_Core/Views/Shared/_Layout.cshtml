@@ -1,0 +1,85 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Ecommerce</title>
+
+    <environment include="Development">
+        <link rel="stylesheet" href="~/css/jquery-ui.css" />
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+        <link rel="stylesheet" href="~/css/site.css" />
+        <link rel="stylesheet/less" type="text/css" href="~/css/public/brandcrsole.less" />
+
+        <link rel="stylesheet" href="~/css/public/flexslider.css" type="text/css" media="screen" />
+        <link href="~/font-awesome/css/font-awesome.css" rel="stylesheet" />
+        <link href="~/css/public/style.css" rel="stylesheet" />
+        <link href="~/css/public/easy-responsive-tabs.css" rel="stylesheet" />
+
+
+        <script src="~/lib/jquery/dist/jquery.js" type="text/javascript"></script>
+        
+        
+        <script src="~/js/brandcrsole.js"></script>
+    </environment>
+    <environment exclude="Development">
+        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
+              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
+        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+    </environment>
+</head>
+<body>
+@Html.Partial("publicHeader")
+
+
+
+
+
+
+<div>
+    @RenderBody()
+    <hr/>
+    <footer>
+        <div class="container text-center">
+            <p>&copy; 2017-2018 - HatBazar.com</p>
+            lict_tup_off_h_47_dotNet
+        </div>
+    </footer>
+</div>
+<environment include="Development">
+
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/jquery-ui.js" type="text/javascript"></script>
+    <script src="~/js/ModalPopup.js" type="text/javascript"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.6.0/slick.js"></script>
+    @Html.Partial("Scripts")
+</environment>
+<environment exclude="Development">
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"
+            asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
+            asp-fallback-test="window.jQuery"
+            crossorigin="anonymous"
+            integrity="sha384-K+ctZQ+LL8q6tP7I94W+qzQsfRV2a+AfHIi9k8z8l9ggpc8X+Ytst4yBo/hH+8Fk">
+    </script>
+    <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js"
+            asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
+            asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal"
+            crossorigin="anonymous"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa">
+    </script>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="~/js/site.min.js" asp-append-version="true"></script>
+    <script src="~/js/ModalPopup.js" type="text/javascript" asp-append-version="true"></script>
+</environment>
+
+@RenderSection("Scripts", required: false)
+</body>
+</html>

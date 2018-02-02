@@ -1,0 +1,69 @@
+﻿@model IEnumerable<Ecommerce_MVC_Core.ViewModel.RolesListViewModel>
+@{
+    ViewData["Title"] = "Roles";
+}
+
+<h2>Roles Image</h2>
+
+
+
+<div class="row">
+    <form method="post" asp-action="Index" class="form-inline">
+        <div class="form-horizontal">
+
+            <div class="form-group">
+                <a id="createModel" asp-controller="Role" data-toggle="modal" asp-action="AddEditApplicationRole" data-target="#modal-popUP" class="btn btn-info">
+                    <i class="glyphicon glyphicon-plus"></i>Add
+                </a>
+
+            </div>
+        </div>
+    </form>
+</div>
+<hr />
+@{
+    if (Model.ToList().Count <= 0)
+    {
+        <h1>No Roles Added Yet</h1>
+    }
+    else
+    {
+        <table class="table table-responsive table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @{
+                    int count = 1;
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@count</td>
+                            <td>
+                                @item.Name
+                            </td>
+                            <td>@item.Description</td>
+                            <td>
+                                <a id="editUserModal" data-toggle="modal" asp-action="AddEditApplicationRole" asp-route-id="@item.Id" data-target="#modal-popUP"
+                                   class="btn btn-info">
+                                    <i class="glyphicon glyphicon-pencil"></i>  Edit
+                                </a>
+                                <a id="deleteUserModal" data-toggle="modal" asp-action="DeleteApplicationRole" asp-route-id="@item.Id" data-target="#modal-popUP" class="btn btn-danger">
+                                    <i class="glyphicon glyphicon-trash"></i>  Delete
+                                </a>
+                            </td>
+                        </tr>
+                        count++;
+                    }
+                }
+            </tbody>
+        </table>
+    }
+}
+@Html.Partial("_Modal", new BootstrapModel { ID = "modal-popUP", AreaLabeledId = "modal-popUP-label", Size = ModalSize.Medium })

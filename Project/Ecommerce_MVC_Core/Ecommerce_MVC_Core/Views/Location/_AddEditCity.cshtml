@@ -1,0 +1,30 @@
+﻿@model Ecommerce_MVC_Core.ViewModel.CityViewModel
+<form asp-action="AddEditCity" id="frm">
+    <div class="form-horizontal">
+        @await Html.PartialAsync("_ModalHeader", new ModalHeader { Heading = $"{(Model.Id <= 0 ? "Add" : "Edit")} Brand" })
+        <hr />
+        <div class="text-danger" asp-validation-summary="ModelOnly"></div>
+
+        <div class="form-group">
+            <label asp-for="Name" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Name" class="form-control" autofocus="" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="CountryId" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <select asp-for="CountryId" asp-items="@Model.Countries" class="form-control"></select>
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+
+    </div>
+    @await Html.PartialAsync("_ModalFooter", new ModalFooter { })
+</form>
+
+<script>
+    $.validator.unobtrusive.parse("#frm");
+</script>

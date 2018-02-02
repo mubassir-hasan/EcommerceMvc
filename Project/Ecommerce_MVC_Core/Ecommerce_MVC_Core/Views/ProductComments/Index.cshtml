@@ -1,0 +1,70 @@
+﻿@model IEnumerable<Ecommerce_MVC_Core.ViewModel.ProductCommentsListViewModel>
+@{
+    ViewData["Title"] = "Comments";
+}
+
+<div class="col-md-2">
+    
+</div>
+<div class="col-md-3">
+    <form method="post" asp-action="Index" class="form-inline">
+        <div class="form-horizontal">
+            <div class="form-group">
+                <input type="text" name="search" value="@Html.ViewBag.SearchString" class="form-control" />
+                <input type="submit" value="Search" class="btn btn-default pull-right" />
+
+            </div>
+        </div>
+    </form>
+</div>
+<div class="col-md-7"></div>
+<hr/>
+@{
+    if (Model.ToList().Count <= 0)
+    {
+        <h1>No one commented yet</h1>
+    }
+    else
+    {
+        <table class="table table-responsive table-hover">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Product Name</th>
+                <th>User</th>
+                <th>Comment</th>
+                <th>Reaction Type</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            @{
+                int count = 1;
+                foreach (var item in Model)
+                {
+                <tr>
+                    <td>@count</td>
+                    <td>
+                        @item.ProductName
+                    </td>
+                    <td>@item.UserName</td>
+                    <td>@item.Comment</td>
+                    <td>@item.UserReaction</td>
+                    <td>
+
+                        <a id="deleteUserModal" data-toggle="modal" asp-action="DeleteComment" asp-route-id="@item.Id" data-target="#modal-popUP" class="btn btn-danger">
+                            <i class="glyphicon glyphicon-trash"></i>  Delete
+                        </a>
+                    </td>
+                </tr>
+                    count++;
+                }
+            }
+            </tbody>
+        </table>
+    }
+}
+@Html.Partial("_Modal", new BootstrapModel { ID = "modal-popUP", AreaLabeledId = "modal-popUP-label", Size = ModalSize.Medium })
+
+

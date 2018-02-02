@@ -1,0 +1,13 @@
+﻿@model System.Collections.Generic.List<Ecommerce_MVC_Core.ViewModel.CategoryViewModel>
+
+
+
+
+@foreach (var item in Model)
+{
+
+    <li><a asp-controller="Home" asp-action="Product" asp-route-Category="@item.Id">@item.Name</a></li>
+
+    @await Component.InvokeAsync("GetHeaderMainMenu", new { categoryId = item.Id })
+}
+

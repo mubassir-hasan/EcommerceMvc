@@ -1,0 +1,148 @@
+﻿@model IEnumerable<Ecommerce_MVC_Core.ViewModel.Public.OrderDetailsViewModel>
+@{
+    ViewData["Title"] = "Index";
+}
+
+@if (Model.Any())
+{
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12 col-md-10 col-md-offset-1">
+                <form method="post" asp-action="Index">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th class="text-center">Price</th>
+                            <th class="text-center">Total</th>
+                            <th> </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @{
+                            var product = Model.ToList();
+                            for (int i = 0; i < product.Count; i++)
+                            {
+  
+                        
+                                <tr>
+                                    <td class="col-sm-8 col-md-6">
+                                        <div class="media">
+                                            <a class="thumbnail pull-left" href="#"> <img class="media-object" src="~/uploads/ProductImages/@product[i].ImagePath" style="width: 72px; height: 72px;"> </a>
+                                            <div class="media-body" style="padding-left: 10px;">
+                                                <h4 class="media-heading"><a asp-controller="Home" asp-action="ProductDetails" asp-route-product="@product[i].ProductId">@product[i].ProductName</a></h4>
+                                                <h5 class="media-heading"> by <a href="#">@product[i].BrandName</a></h5>
+
+                                                @if (product[i].Stock > 0)
+                                                {
+                                                    <span> Status: </span><span class="text-success">
+                                                                              <strong>In Stock</strong>
+
+                                                                          </span>
+                                                }
+                                                else
+                                                {
+                                                    <span> Status: </span><span class="text-danger">
+                                                                              <strong>Stock Out</strong>
+
+                                                                          </span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="col-sm-1 col-md-1" style="text-align: center">
+                                        <input type="number" class="qnt form-control" asp-for="@product[i].Quantity" value="@product[i].Quantity">
+
+                                
+                                    </td>
+                                    <td class="col-sm-1 col-md-1 text-center"><strong class="price">@product[i].FinalPrice</strong></td>
+                                    <td class="col-sm-1 col-md-1 text-center"><strong class="total">@product[i].FinalPrice</strong></td>
+                                    <td class="col-sm-1 col-md-1">
+                                        <a asp-action="RemoveItemFromCart" data-toggle="modal" class="btn btn-danger" data-target="#modal-popUP" asp-route-product="@product[i].ProductId"> <span class="glyphicon glyphicon-remove">Remove</span></a>
+
+                                
+                                        <input type="hidden" asp-for="@product[i].ProductName" />
+                                        <input type="hidden" asp-for="@product[i].FinalPrice" />
+                                        <input type="hidden" asp-for="@product[i].ProductId" />
+
+                                    </td>
+                                </tr>
+                        
+                        
+                            }
+                        }
+
+
+                        <tr>
+                            <tr>
+                                <td>
+                                </td>
+
+                                <td>
+                                    <label>Sub Total: </label>
+                                    <label class="subtotal">0</label>
+                                </td>
+                                <td>
+                                    <label>Estimated Shipping: </label>
+                                    <label class="shipping">0</label>
+                                </td>
+                                <td>
+                                    <label>Grand Total: </label>
+                                    <label class="grantotal">0</label>
+                                
+
+                                </td>
+                            </tr>
+                        </tr>
+                        <tr>
+                            <td> </td>
+                            <td> </td>
+                            <td> </td>
+                            <td>
+                                <a asp-controller="Home" asp-action="Product" class="btn btn-default">Continue Shopping</a>
+                            </td>
+                            <td>
+                                <button type="submit" class="btn btn-success">
+                                    Checkout <span class="glyphicon glyphicon-play"></span>
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+    @Html.Partial("_Modal", new BootstrapModel { ID = "modal-popUP", AreaLabeledId = "modal-popUP-label", Size = ModalSize.Medium })
+}
+else
+{
+    <div class="text-center" style="padding-top: 30px;">
+        <h1>No Product added to cart. <a asp-controller="Home" asp-action="Product">Continue Shopping</a></h1>
+    </div>
+}
+<script type="text/javascript">
+    $(document).ready(function(){
+    
+        $('.qnt').focusout(function(){
+            var qnt = $(this).closest('tr').find('.qnt').val();
+            var price = $(this).closest('tr').find('.price').text();
+            var aTotal =  $(this).closest('tr').find('.total').text(qnt * price);
+        
+            var subtotal = 0;
+            $('.total').each(function(){
+                var cTotal = $(this).text();
+                subtotal = subtotal + parseFloat(cTotal);   
+            });
+       
+            $('.subtotal').text(subtotal);
+       
+            //var shipping = $('.shipping').text();
+            var grantotal =  parseFloat(subtotal);
+            $('.grantotal').text(grantotal);
+        });
+    
+    })
+
+</script>

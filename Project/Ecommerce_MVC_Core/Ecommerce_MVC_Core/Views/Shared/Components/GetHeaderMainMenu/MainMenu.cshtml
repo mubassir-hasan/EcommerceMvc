@@ -1,0 +1,43 @@
+﻿@model System.Collections.Generic.List<Ecommerce_MVC_Core.ViewModel.CategoryViewModel>
+
+
+
+   
+@foreach (var item in Model)
+{<li class="dropdown menu__item">
+    <a href="#" class="dropdown-toggle menu__link" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">@item.Name <span class="caret"></span></a>
+    <ul class="dropdown-menu multi-column columns-3">
+        <div class="agile_inner_drop_nav_info">
+            <div class="col-sm-6 multi-gd-img1 multi-gd-text ">
+                <a asp-controller="Home" asp-action="Product" asp-route-Category="@item.Id"><img src="~/images/public/@(item.Name+".jpg")" alt=" " /></a>
+            </div>
+            @{
+
+
+           
+       
+            <div class="col-sm-6 multi-gd-img">
+                <ul class="multi-column-dropdown">
+                    <div class="col-sm-3 multi-gd-img">
+        
+                        <ul class="multi-column-dropdown">
+                            <li>
+                            @await Component.InvokeAsync("GetHeaderMainMenu", new { categoryId = item.Id })
+                            </li>
+                        </ul>
+           
+                    </div>
+                       
+                    
+                </ul>
+            </div>
+            }
+
+            <div class="clearfix"></div>
+        </div>
+    </ul>
+
+    </li>
+
+    }
+

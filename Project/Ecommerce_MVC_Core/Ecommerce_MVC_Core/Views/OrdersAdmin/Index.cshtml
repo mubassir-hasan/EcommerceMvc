@@ -1,0 +1,73 @@
+﻿@model IEnumerable<Ecommerce_MVC_Core.ViewModel.OrdersViewModel>
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<div class="col-md-3">
+    <form method="post" asp-action="Index" class="form-inline">
+        <div class="form-horizontal">
+            <div class="form-group">
+                <input type="text" name="search" value="@Html.ViewBag.SearchString" class="form-control" />
+                <input type="submit" value="Search" class="btn btn-default pull-right" />
+
+            </div>
+        </div>
+    </form>
+</div>
+<hr />
+@{
+    if (Model.ToList().Count <= 0)
+    {
+        <h1>No one orders Yet</h1>
+    }
+    else
+    {
+        <table class="table table-responsive table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Number</th>
+
+                    <th>Users</th>
+                    <th>Location</th>
+                    <th>Payment Method</th>
+                    <th>Charge</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @{
+                    int count = 1;
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@count</td>
+                            <td>
+                                @item.Number
+                            </td>
+                            <td>
+                                @item.UserName
+                            </td>
+                            <td>
+                                @item.LocationName
+                            </td>
+                            <td>@item.PaymentMethod</td>
+                            <td>@item.DeliveryCharge</td>
+                            <td>
+                                @item.Total
+                            </td>
+                            <td>
+                                <a id="deleteUserModal" data-toggle="modal" asp-action="DeleteProduct" asp-route-id="@item.Id" data-target="#modal-popUP" class="btn btn-danger">
+                                    <i class="glyphicon glyphicon-trash"></i>  Delete
+                                </a>
+                            </td>
+                        </tr>
+                        count++;
+                    }
+                }
+            </tbody>
+        </table>
+    }
+}

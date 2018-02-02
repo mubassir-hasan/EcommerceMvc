@@ -1,0 +1,10 @@
+﻿
+<form asp-controller="Users" asp-action="LogOut" method="post" role="form">
+    @Html.Partial("_ModalHeader", new ModalHeader { Heading = "Logout" })
+
+    <div class="modal-body form-horizontal">
+        Are you want to Logout?
+    </div>
+
+    @Html.Partial("_ModalFooter", new ModalFooter { SubmitButtonText = "Logout",})
+</form>

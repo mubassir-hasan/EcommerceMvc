@@ -1,0 +1,10 @@
+﻿
+<form asp-action="DeletePaymentMethod" role="form">
+    @Html.Partial("_ModalHeader", new ModalHeader { Heading = "Are you sure?" })
+
+    <div class="modal-body form-horizontal">
+        Do you want to delete <strong>@Model?</strong>
+    </div>
+
+    @Html.Partial("_ModalFooter", new ModalFooter { SubmitButtonText = "Delete" })
+</form>

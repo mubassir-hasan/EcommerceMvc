@@ -1,0 +1,40 @@
+﻿@model Ecommerce_MVC_Core.ViewModel.ProductListViewModel
+@await Html.PartialAsync("_ModalHeader", new ModalHeader { Heading = "" })
+    <div class="quick_view">
+    
+        <div class="row">
+            <div class="col-md-6 product_img">
+                <img src="~/uploads/ProductImages/@(Model.ImagePath ?? "noproductimage.png")" class="img-responsive">
+            </div>
+            <div class="col-md-6 product_content">
+                <h4> <span>@Model.Name</span></h4>
+                <hr/>
+                <div class="rating">
+                    <span class="glyphicon glyphicon-star"></span>
+                    <span class="glyphicon glyphicon-star"></span>
+                    <span class="glyphicon glyphicon-star"></span>
+                    <span class="glyphicon glyphicon-star"></span>
+                    <span class="glyphicon glyphicon-star"></span>
+                    (10 reviews)
+                </div>
+                <p> -@Model.Description</p>
+                <h3 class="cost">
+                    @Model.FinalPrice BDT<small class="pre-cost"> <del>@Model.Price BDT</del></small>
+                </h3>
+            
+                <div class="space-ten"></div>
+                <div class="btn-ground">
+                    <a data-toggle="modal" asp-controller="Home" asp-action="AddToCart" asp-route-product="@Model.Id" data-target="#modal-popUP" class="btn btn-primary">Add to Cart</a>
+                    <a asp-controller="Home" asp-action="ProductDetails" asp-route-product="@Model.Id" class="btn btn-info">More Info..</a>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+
+<style>
+   
+    .product_view .modal-dialog{max-width: 800px; width: 100%;}
+    .pre-cost{text-decoration: line-through; color: #a5a5a5;}
+    .space-ten{padding: 20px 0;}
+</style>  

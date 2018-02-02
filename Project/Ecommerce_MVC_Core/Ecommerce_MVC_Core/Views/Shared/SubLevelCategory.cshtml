@@ -1,0 +1,15 @@
+﻿
+@model IEnumerable<Ecommerce_MVC_Core.ViewModel.CategoryViewModel>
+
+
+@foreach (var item in Model)
+{
+
+<a asp-controller="Home" asp-action="Product" asp-route-Category="@item.Id" class="list-group-item">@item.Name</a>
+   
+
+        @Html.Partial("SubLevelCategory", item.CategoryMenus)
+
+    
+
+}

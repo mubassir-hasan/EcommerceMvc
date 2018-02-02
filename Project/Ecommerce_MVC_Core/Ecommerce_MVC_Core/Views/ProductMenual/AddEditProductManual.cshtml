@@ -1,0 +1,72 @@
+﻿@model Ecommerce_MVC_Core.ViewModel.ProductMenualViewModel
+@{
+    ViewData["Title"] = "AddEditProductManual";
+}
+
+<form asp-action="AddEditProductManual" enctype="multipart/form-data">
+    <div class="form-horizontal">
+        <div class="text-danger" asp-validation-summary="ModelOnly"></div>
+
+        <div class="form-group">
+            <label asp-for="ProductId" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input type="text" id="txtProduct" asp-for="ProductName" class="form-control" autofocus="" />
+
+                <input asp-for="ProductId" type="text" id="txtProductId" class="form-control" />
+                <span asp-validation-for="ProductId" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="ProductFile" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <div>
+                    <input type="file" asp-for="ProductFile" title="search image" id="file" />
+                </div>
+                <span asp-validation-for="ProductFile" class="text-danger"></span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit"/>
+            </div>
+        </div>
+    </div>
+</form>
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="/lib/jquery/dist/jquery.js"></script>
+<script src="/js/jquery-ui.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#txtProduct").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/ProductImage/GetProducts",
+                    type: "GET",
+                    dataType: "json",
+                    data: { term: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            console.log("Label " + item.label);
+                            console.log("value " + item.val);
+                            return { label: item.label, value: item.val };
+                        }))
+
+                    }
+                })
+            },
+
+            select: function (event, ui) {
+
+                $('#txtProductId').val(ui.item.value);
+                $('#txtProduct').val(ui.item.label);
+                return false;
+            },
+            messages: {
+                noResults: "", results: function (resultsCount) { }
+            }
+        });
+    })
+</script>

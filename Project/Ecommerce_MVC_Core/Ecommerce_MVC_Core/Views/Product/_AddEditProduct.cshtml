@@ -1,0 +1,87 @@
+﻿@model Ecommerce_MVC_Core.ViewModel.ProductViewModel
+<form asp-action="AddEditProduct" id="frm">
+    <div class="form-horizontal">
+        @await Html.PartialAsync("_ModalHeader", new ModalHeader { Heading = $"{(Model.Id <= 0 ? "Add" : "Edit")} Product" })
+        <hr />
+        <div class="text-danger" asp-validation-summary="ModelOnly"></div>
+
+        <div class="form-group">
+            <label asp-for="Name" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Name" class="form-control" autofocus="" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Code" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Code" class="form-control" autofocus="" />
+                <span asp-validation-for="Code" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Tag" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Tag" class="form-control" autofocus="" />
+                <span asp-validation-for="Tag" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="CategoryId" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <select asp-for="CategoryId" asp-items="@Model.CategoryList" class="form-control"></select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="BrandId" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <select asp-for="BrandId" asp-items="@Model.BrandList" class="form-control"></select>
+                <span asp-validation-for="BrandId" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="UnitId" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <select asp-for="UnitId" asp-items="@Model.UnitList" class="form-control"></select>
+                <span asp-validation-for="UnitId" class="text-danger"></span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label asp-for="Price" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Price" class="form-control" autofocus="" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label asp-for="Discount" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Discount" class="form-control" autofocus="" />
+                <span asp-validation-for="Discount" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <textarea asp-for="Description" class="form-control"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+        </div>
+
+
+    </div>
+    @await Html.PartialAsync("_ModalFooter", new ModalFooter { })
+</form>
+
+<script>
+    $.validator.unobtrusive.parse("#frm");
+</script>

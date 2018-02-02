@@ -1,0 +1,73 @@
+﻿@model IEnumerable<Ecommerce_MVC_Core.ViewModel.UserListViewModel>
+@{
+    ViewData["Title"] = "Users";
+}
+
+<div class="row">
+    <form method="post" asp-action="Index" class="form-inline">
+        <div class="form-horizontal">
+            
+            <div class="form-group">
+                @*<a id="createModel" data-toggle="modal" asp-controller="Category" asp-action="AddEditCategory" class="btn btn-info" data-target="#modal-popUP">
+                    <i class="glyphicon glyphicon-plus"></i>Add
+                </a>*@
+                <input type="text" name="search" value="@Html.ViewBag.SearchString" class="form-control"/>
+                <input type="submit" value="Search" class="btn btn-default pull-right"/>
+
+            </div>
+        </div>
+    </form>
+</div>
+<hr/>
+@{
+    if (Model.ToList().Count <= 0)
+    {
+        <h1>No Users Registered</h1>
+    }
+    else
+    {
+        <table class="table table-responsive table-hover">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>City</th>
+                <th>Contact</th>
+                <th>Gender</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            @{
+                int count = 1;
+                foreach (var item in Model)
+                {
+                <tr>
+                    <td>@count</td>
+                    <td>
+                        @item.Name
+                    </td>
+                    <td>@item.Email</td>
+                    <td>@item.CityName</td>
+                    <td>@item.Contact</td>
+                    <td>@item.Gender</td>
+                    <td>
+                        <a id="deleteUserModal" data-toggle="modal" asp-action="DeleteUser" asp-route-id="@item.Id" data-target="#modal-popUP" class="btn btn-danger">
+                            <i class="glyphicon glyphicon-trash"></i>  Delete
+                        </a>
+                    </td>
+                </tr>
+                    count++;
+                }
+            }
+            </tbody>
+        </table>
+    }
+}
+@Html.Partial("_Modal", new BootstrapModel { ID = "modal-popUP", AreaLabeledId = "modal-popUP-label", Size = ModalSize.Medium })
+
+
+
+
