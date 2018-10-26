@@ -1,5 +1,5 @@
 ﻿@model Ecommerce_MVC_Core.ViewModel.ProductViewModel
-<form asp-action="AddEditProduct" id="frm">
+<form asp-action="AddEditProduct" id="frm" enctype="multipart/form-data">
     <div class="form-horizontal">
         @await Html.PartialAsync("_ModalHeader", new ModalHeader { Heading = $"{(Model.Id <= 0 ? "Add" : "Edit")} Product" })
         <hr />
@@ -52,7 +52,7 @@
                 <span asp-validation-for="UnitId" class="text-danger"></span>
             </div>
         </div>
-        
+
         <div class="form-group">
             <label asp-for="Price" class="col-md-3 control-label"></label>
             <div class="col-md-8">
@@ -60,7 +60,7 @@
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
         </div>
-        
+
         <div class="form-group">
             <label asp-for="Discount" class="col-md-3 control-label"></label>
             <div class="col-md-8">
@@ -76,6 +76,22 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
         </div>
+
+        @if (Model.Id <= 0)
+        {
+            <div class="form-group">
+                <label class="col-md-3 control-label">Product Images</label>
+                <div class="col-md-8">
+                    <input type="file" class="form-control" asp-for="Images" multiple />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-3 control-label">Product Manual</label>
+                <div class="col-md-8">
+                    <input type="file" class="form-control" asp-for="Manual" />
+                </div>
+            </div>
+        }
 
 
     </div>

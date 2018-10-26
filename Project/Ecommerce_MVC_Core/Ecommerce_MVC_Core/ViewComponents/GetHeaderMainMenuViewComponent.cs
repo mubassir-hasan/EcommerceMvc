@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
@@ -11,14 +12,13 @@ namespace Ecommerce_MVC_Core.ViewComponents
 {
     public class GetHeaderMainMenuViewComponent : ViewComponent
     {
-        private readonly IRepository<Category> _repoCategory;
-        private readonly IRepository<Product> _repoProduct;
+        
+        private readonly IUnitOfWork _unitOfWork;
         private ApplicationDbContext _context;
 
-        public GetHeaderMainMenuViewComponent(IRepository<Category> repoCategory, IRepository<Product> repoProduct)
+        public GetHeaderMainMenuViewComponent(IUnitOfWork unitOfWork)
         {
-            _repoProduct = repoProduct;
-            _repoCategory = repoCategory;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<IViewComponentResult> InvokeAsync(int categoryId=0)
@@ -42,7 +42,7 @@ namespace Ecommerce_MVC_Core.ViewComponents
             List<CategoryViewModel> categories = new List<CategoryViewModel>();
             if (categoryId>0)
             {
-                _repoCategory.GetAll().Where(x => x.CategoryId == categoryId).ToList().ForEach(c =>
+                _unitOfWork.Repository<Category>().GetAll().Where(x => x.CategoryId == categoryId).ToList().ForEach(c =>
                 {
                     CategoryViewModel category = new CategoryViewModel
                     {
@@ -57,7 +57,7 @@ namespace Ecommerce_MVC_Core.ViewComponents
             }
             else
             {
-                _repoCategory.GetAll().Where(x => x.CategoryId == null).ToList().ForEach(c =>
+                _unitOfWork.Repository<Category>().GetAll().Where(x => x.CategoryId == null).ToList().ForEach(c =>
                 {
                     CategoryViewModel category = new CategoryViewModel
                     {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,16 +14,19 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
     public class StatusController : Controller
     {
 
-        private IRepository<Status> _repoStatus { get; set; }
-        public StatusController(IRepository<Status> repoStatus)
+        private readonly IUnitOfWork _unitOfWork;
+
+        public StatusController(
+            IUnitOfWork unitOfWork
+        )
         {
-            _repoStatus = repoStatus;
+            _unitOfWork = unitOfWork;
         }
 
         public IActionResult Index()
         {
             List<StatusViewModel> model=new List<StatusViewModel>();
-            _repoStatus.GetAll().ToList().ForEach(s =>
+            _unitOfWork.Repository<Status>().GetAll().ToList().ForEach(s =>
             {
                 StatusViewModel status=new StatusViewModel
                 {
@@ -40,12 +44,12 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
             return View(model);
         }
 
-        public IActionResult AddEditStatus(int id=0)
+        public async Task<IActionResult> AddEditStatus(int id=0)
         {
             StatusViewModel model=new StatusViewModel();
             if (id>0)
             {
-                Status status = _repoStatus.GetById(id);
+                Status status = await _unitOfWork.Repository<Status>().GetByIdAsync(id);
                 model.Id = status.Id;
                 model.Name = status.Name;
                 model.Description = status.Description;
@@ -55,23 +59,23 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpPost]
-        public IActionResult AddEditStatus(int id, StatusViewModel model)
+        public async Task<IActionResult> AddEditStatus(int id, StatusViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 ModelState.AddModelError("","Something Wrong");
-                return View(model);
+                return PartialView("_AddEditStatus", model);
             }
             if (id>0)
             {
-                Status status = _repoStatus.GetById(id);
+                Status status = await _unitOfWork.Repository<Status>().GetByIdAsync(id);
                 if (status!=null)
                 {
                     status.Name = model.Name;
                     status.Description = model.Description;
                     status.Level = model.Level;
                     status.ModifiedDate=DateTime.Now;
-                    _repoStatus.Update(status);
+                    await _unitOfWork.Repository<Status>().UpdateAsync(status);
                 }
             }
             else
@@ -83,26 +87,26 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                 statusUp.Level = model.Level;
                 statusUp.ModifiedDate = DateTime.Now;
                 statusUp.AddedDate = DateTime.Now;
-                _repoStatus.Insert(statusUp);
+                await _unitOfWork.Repository<Status>().InsertAsync(statusUp);
             }
             return RedirectToAction("Index");
         }
 
         [HttpGet]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            Status status = _repoStatus.GetById(id);
+            Status status = await _unitOfWork.Repository<Status>().GetByIdAsync(id);
 
             return PartialView("_DeleteStatus", status?.Name);
         }
 
         [HttpPost]
-        public IActionResult Delete(int id, IFormCollection form)
+        public async Task<IActionResult> Delete(int id, IFormCollection form)
         {
-            Status status = _repoStatus.GetById(id); 
+            Status status = await _unitOfWork.Repository<Status>().GetByIdAsync(id); 
             if (status != null)
             {
-                _repoStatus.Delete(status);
+                await _unitOfWork.Repository<Status>().DeleteAsync(status);
 
             }
             return RedirectToAction("Index");

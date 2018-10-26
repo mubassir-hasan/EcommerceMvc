@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -14,63 +15,46 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
     
     public class BrandController : Controller
     {
-        private readonly IRepository<Brand> _repoBrand;
-        private readonly IRepository<Product> _repoProduct;
+        
+
+        private readonly IUnitOfWork _unitOfWork;
 
         public BrandController(
-            IRepository<Brand> repoBrand,
-            IRepository<Product> repoProduct
+            IUnitOfWork unitOfWork
         )
         {
-            _repoBrand = repoBrand;
-            _repoProduct = repoProduct;
+            _unitOfWork = unitOfWork;
         }
 
-        public IActionResult Index(string search="")
+        public async Task<IActionResult> Index(string search="")
         {
             List<BrandListViewModel> model = new List<BrandListViewModel>();
-            if (!String.IsNullOrEmpty(search))
-            {
-                _repoBrand.GetAll().Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList().ForEach(b =>
-                {
-                    BrandListViewModel brand = new BrandListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                        Description = b.Description,
-                        TotalProduct = _repoProduct.GetAll().Count(x=>x.BrandId==b.Id)
-                    };
+            var dbBrand = await _unitOfWork.Repository<Brand>().GetAllIncludeAsync(x => x.Products);
 
-                    model.Add(brand);
-                });
+            model=dbBrand.Select(b => new BrandListViewModel
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    Description = b.Description,
+                    TotalProduct = b.Products.Count
+                }).ToList();
+
+            if (!String.IsNullOrEmpty(search)) { 
+                model=model.Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList();
                 ViewBag.SearchString = search;
+            return View(model);
             }
-            else
-            {
-                _repoBrand.GetAll().ToList().ForEach(b =>
-                {
-                    BrandListViewModel brand = new BrandListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                        Description = b.Description,
-                        TotalProduct = _repoProduct.GetAll().Count(x => x.BrandId == b.Id)
-                    };
-
-                    model.Add(brand);
-                });
-            }
-
+            
             return View(model);
         }
 
         [HttpGet]
-        public IActionResult AddEditBrand(int id)
+        public async Task<IActionResult> AddEditBrand(int id)
         {
             BrandViewModel model=new BrandViewModel();
             if (id>0)
             {
-                Brand brand = _repoBrand.GetById(id);
+                Brand brand =await _unitOfWork.Repository<Brand>().GetByIdAsync(id);
                 model.Name = brand.Name;
                 model.Description = brand.Description;
             }
@@ -78,7 +62,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpPost]
-        public IActionResult AddEditBrand(int id, BrandViewModel model)
+        public async Task<IActionResult> AddEditBrand(int id, BrandViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -87,14 +71,14 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 
             if (id>0)
             {
-                Brand brand = _repoBrand.GetById(id);
+                Brand brand = await _unitOfWork.Repository<Brand>().GetByIdAsync(id);
                 if (brand!=null)
                 {
                     brand.Name = model.Name;
                     brand.Description = model.Description;
                     brand.ModifiedDate = DateTime.Now;
                 }
-                _repoBrand.Update(brand);
+                 _unitOfWork.Repository<Brand>().Update(brand);
                 
             }
             else
@@ -106,27 +90,27 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     AddedDate = DateTime.Now,
                     ModifiedDate = DateTime.Now,
                 };
-                _repoBrand.Insert(brand);
+                await _unitOfWork.Repository<Brand>().InsertAsync(brand);
             }
 
             return RedirectToAction("Index");
         }
 
         [HttpGet]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            Brand brand = _repoBrand.GetById(id);
+            Brand brand = await _unitOfWork.Repository<Brand>().GetByIdAsync(id);
 
             return PartialView("_DeleteBrand",brand?.Name);
         }
 
         [HttpPost]
-        public IActionResult Delete(int id, IFormCollection form)
+        public async Task<IActionResult> Delete(int id, IFormCollection form)
         {
-            Brand brand = _repoBrand.GetById(id);
+            Brand brand = await _unitOfWork.Repository<Brand>().GetByIdAsync(id);
             if (brand!=null)
             {
-                _repoBrand.Delete(brand);
+                await _unitOfWork.Repository<Brand>().DeleteAsync(brand);
 
             }
             return RedirectToAction("Index");

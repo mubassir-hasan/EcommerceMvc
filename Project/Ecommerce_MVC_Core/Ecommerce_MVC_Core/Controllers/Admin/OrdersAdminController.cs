@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,16 +16,15 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
     public class OrdersAdminController : Controller
     {
         private readonly UserManager<ApplicationUsers> _userManager;
-        private readonly IRepository<PaymentMethod> _repoPaymentMethod;
-        private readonly IRepository<Location> _repoLocation;
-        private readonly IRepository<Orders> _repoOrders;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public OrdersAdminController(IRepository<Orders> repoOrders,UserManager<ApplicationUsers> userManager, IRepository<PaymentMethod> repoPaymentMethod, IRepository<Location> repoLocation)
+        public OrdersAdminController(
+            IUnitOfWork unitOfWork,
+            UserManager<ApplicationUsers> userManager
+        )
         {
             _userManager = userManager;
-            _repoPaymentMethod = repoPaymentMethod;
-            _repoLocation = repoLocation;
-            _repoOrders = repoOrders;
+            _unitOfWork = unitOfWork;
         }
 
         public IActionResult Index(string search="")
@@ -49,7 +49,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         public List<OrdersViewModel> GetAllOrders()
         {
             List<OrdersViewModel> orderslList = new List<OrdersViewModel>();
-            _repoOrders.GetAll().OrderByDescending(x=>x.AddedDate).ToList().ForEach(o =>
+           _unitOfWork.Repository<Orders>().GetAllInclude(x=>x.PaymentMethod,l=>l.Location).OrderByDescending(x=>x.AddedDate).ToList().ForEach(o =>
             {
                 OrdersViewModel order=new OrdersViewModel
                 {
@@ -65,10 +65,10 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     Total = o.Total,
                     UserId = o.UserId,
                 };
-                ApplicationUsers user = _userManager.FindByIdAsync(o.UserId).Result;
+                var user = _userManager.FindByIdAsync(o.UserId).Result;
                 order.UserName = user.Name;
-                order.PaymentMethod = _repoPaymentMethod.GetAll().First(x => x.Id == o.PaymentMethodId).Name;
-                order.LocationName = _repoLocation.GetAll().First(x => x.Id == o.LocationId).Name;
+                order.PaymentMethod = o.PaymentMethod.Name;
+                order.LocationName = o.Location.Name;
                 orderslList.Add(order);
             });
             return orderslList;

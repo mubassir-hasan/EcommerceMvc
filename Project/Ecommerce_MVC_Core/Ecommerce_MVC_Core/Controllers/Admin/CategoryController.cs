@@ -4,73 +4,60 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce_MVC_Core.Controllers.Admin
 {
     public class CategoryController : Controller
     {
-        private readonly IRepository<Category> _repoCategory;
+        private readonly IUnitOfWork _unitOfWork;
 
         public CategoryController(
-            IRepository<Category> repoCategory
+            IUnitOfWork unitOfWork
         )
         {
-            _repoCategory = repoCategory;
+            _unitOfWork = unitOfWork;
         }
 
-        public IActionResult Index(string search="")
+        public async Task<IActionResult> Index(string search="")
         {
             List<CategoryListViewModel> model=new List<CategoryListViewModel>();
+            var dbData =await _unitOfWork.Repository<Category>().GetAllIncludeAsync(x=>x.Categoris,p=>p.Products);
+                
             if (!String.IsNullOrEmpty(search))
             {
-                _repoCategory.GetAll().Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList().ForEach(c =>
-                {
-                    CategoryListViewModel categoryList=new CategoryListViewModel
-                    {
-                        Id = c.Id,
-                        Name = c.Name,
-                        Description = c.Description,
-                        CategoryId = c.CategoryId,
-                        CategoryParentName = c.CategoryId==null?"":
-                        _repoCategory.GetAll().First(x => x.Id == c.CategoryId).Name,
-                        TotalProduct = c.Products?.Count ?? 0
-                    };
-                    model.Add(categoryList);
-                });
+                dbData=(IList<Category>) dbData.Where(x => x.Name.ToLower().Contains(search.ToLower()));
                 ViewBag.SearchString = search;
 
             }
-            else
-            {
-                _repoCategory.GetAll().ToList().ForEach(c =>
-                {
-                    CategoryListViewModel categoryList = new CategoryListViewModel
-                    {
-                        Id = c.Id,
-                        Name = c.Name,
-                        Description = c.Description,
-                        CategoryId = c.CategoryId,
-                        CategoryParentName = c.CategoryId == null ? "" :
-                            _repoCategory.GetAll().First(x => x.Id == c.CategoryId).Name,
-                        TotalProduct = c.Products?.Count ?? 0
-                    };
-                    model.Add(categoryList);
-                });
 
+            foreach (var c in dbData)
+            {
+                CategoryListViewModel categoryList = new CategoryListViewModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description,
+                    CategoryId = c.CategoryId,
+                    CategoryParentName = c.Categoris?.Name,
+                    TotalProduct = c.Products?.Count ?? 0
+                };
+                model.Add(categoryList);
             }
             return View(model);
         }
 
         [HttpGet]
-        public IActionResult AddEditCategory(int id)
+        public async Task<IActionResult> AddEditCategory(int id)
         {
             CategoryViewModel model = new CategoryViewModel
             {
-                Categories = _repoCategory.GetAll().Select(c => new SelectListItem
+                Categories =  _unitOfWork.Repository<Category>().GetAll().Select(c => new SelectListItem
                 {
                     Text = c.Name,
                     Value = c.Id.ToString()
@@ -78,7 +65,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
             };
             if (id>0)
             {
-                Category category=_repoCategory.GetById(id);
+                Category category= await _unitOfWork.Repository<Category>().GetByIdAsync(id);
                 if (category!=null)
                 {
                     model.Name = category.Name;
@@ -91,7 +78,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpPost]
-        public IActionResult AddEditCategory(int id,CategoryViewModel model)
+        public async Task<IActionResult> AddEditCategory(int id,CategoryViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -100,7 +87,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 
             if (id>0)
             {
-                Category category = _repoCategory.GetById(id);
+                Category category = await _unitOfWork.Repository<Category>().GetByIdAsync(id);
                 if (category!=null)
                 {
                     category.Name = model.Name;
@@ -108,7 +95,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     category.CategoryId = model.CategoryId;
                     
                     category.ModifiedDate=DateTime.Now;
-                    _repoCategory.Update(category);
+                    await _unitOfWork.Repository<Category>().UpdateAsync(category);
                 }
             }
             else
@@ -121,26 +108,26 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     AddedDate = DateTime.Now,
                     ModifiedDate = DateTime.Now
                 };
-                _repoCategory.Insert(category);
+                await _unitOfWork.Repository<Category>().InsertAsync(category);
             }
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            Category category = _repoCategory.GetById(id);
+            Category category = await _unitOfWork.Repository<Category>().GetByIdAsync(id);
 
             return PartialView("_DeleteCategory", category?.Name);
         }
 
         [HttpPost]
-        public IActionResult Delete(int id, IFormCollection form)
+        public async Task<IActionResult> Delete(int id, IFormCollection form)
         {
-            Category category = _repoCategory.GetById(id);
+            var category = await _unitOfWork.Repository<Category>().GetByIdAsync(id);
             if (category != null)
             {
-                _repoCategory.Delete(category);
+                await _unitOfWork.Repository<Category>().DeleteAsync(category);
 
             }
             return RedirectToAction("Index");

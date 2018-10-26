@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -15,18 +16,19 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 {
     public class ProductImageController : Controller
     {
-        private readonly IRepository<ProductImage> _repoProductImage;
-        private readonly IRepository<Product> _repoProduct;
-        private readonly IRepository<Category> _repoCategory;
-        private readonly IHostingEnvironment _hostingEnv;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IHostingEnvironment _hosingEnv;
 
-        public ProductImageController(IHostingEnvironment hostingEnv,IRepository<ProductImage> repoProductImage, IRepository<Product> repoProduct, IRepository<Category> repoCategory)
+        public ProductImageController(
+            IHostingEnvironment hostingEnv,
+            IUnitOfWork unitOfWork
+        )
         {
-            _repoCategory = repoCategory;
-            _repoProductImage = repoProductImage;
-            _repoProduct = repoProduct;
-            _hostingEnv = hostingEnv;
+            _hosingEnv = hostingEnv;
+            _unitOfWork = unitOfWork;
         }
+
+        
 
         public IActionResult Index(string search="")
         {
@@ -48,7 +50,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         public List<ProductImageListViewModel> GetAllProductImageList()
         {
             List<ProductImageListViewModel> productImageList = new List<ProductImageListViewModel>();
-            _repoProductImage.GetAll().OrderByDescending(x=>x.AddedDate).ToList().ForEach(p =>
+            _unitOfWork.Repository<ProductImage>().GetAllInclude(p=>p.Product).OrderByDescending(x=>x.AddedDate).ToList().ForEach(p =>
             {
                 ProductImageListViewModel productImage=new ProductImageListViewModel
                 {
@@ -56,7 +58,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     ProductId = p.Id,
                     Title = p.Title,
                     ImagePath = p.ImagePath,
-                    ProductName = _repoProduct.GetAll().First(x=>x.Id==p.ProductId).Name
+                    ProductName = p.Product.Name
                 };
                 productImageList.Add(productImage);
             });
@@ -64,13 +66,13 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpGet]
-        public IActionResult AddEditProductImage(int id)
+        public async Task<IActionResult> AddEditProductImage(int id)
         {
             ProductImageViewModel model = new ProductImageViewModel();
             model.Categories = GetAllCategories();
             if (id > 0)
             {
-                ProductImage pImage = _repoProductImage.GetById(id);
+                ProductImage pImage = await _unitOfWork.Repository<ProductImage>().GetByIdAsync(id);
                 model.ProductId = pImage.ProductId;
                 model.Title = pImage.Title;
                 
@@ -89,7 +91,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 
             if (id > 0)
             {
-                ProductImage pImage = _repoProductImage.GetById(id);
+                ProductImage pImage = await _unitOfWork.Repository<ProductImage>().GetByIdAsync(id);
                 if (pImage != null)
                 {
                     pImage.ProductId = model.ProductId;
@@ -99,8 +101,8 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     if (model.ImageFile != null && (model.ImageFile.ContentType == "image/png" || model.ImageFile.ContentType == "image/jpg" || model.ImageFile.ContentType == "image/jpeg"))
                     {
 
-                        var uploads = Path.Combine(_hostingEnv.WebRootPath, "uploads/ProductImages");
-                        var fileName = Path.Combine(uploads, _repoProduct.GetAll().First(x => x.Id == model.ProductId).Name + "_" + Guid.NewGuid().ToString().Substring(0, Guid.NewGuid().ToString().IndexOf("-", StringComparison.Ordinal)) + ".png");
+                        var uploads = Path.Combine(_hosingEnv.WebRootPath, "uploads/ProductImages");
+                        var fileName = Path.Combine(uploads, _unitOfWork.Repository<Product>().Find(x => x.Id == model.ProductId).Name + "_" + Guid.NewGuid().ToString().Substring(0, Guid.NewGuid().ToString().IndexOf("-", StringComparison.Ordinal)) + ".png");
                         pImage.ImagePath = Path.GetFileName(fileName);
                         
                         using (var fileStream = new FileStream(Path.Combine(uploads, fileName), FileMode.Create))
@@ -112,7 +114,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     {
                         ModelState.AddModelError("", "Wrong file Type. Please Upload only Image file");
                     }
-                    _repoProductImage.Update(pImage);
+                    await _unitOfWork.Repository<ProductImage>().UpdateAsync(pImage);
                 }
                 
 
@@ -129,10 +131,10 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                 if (model.ImageFile != null &&(model.ImageFile.ContentType== "image/png"|| model.ImageFile.ContentType == "image/jpg" || model.ImageFile.ContentType == "image/jpeg") )
                 {
 
-                    var uploads = Path.Combine(_hostingEnv.WebRootPath, "uploads/ProductImages");
-                    var fileName = Path.Combine(uploads, _repoProduct.GetAll().First(x=>x.Id==model.ProductId).Name + "_" + Guid.NewGuid().ToString().Substring(0, Guid.NewGuid().ToString().IndexOf("-", StringComparison.Ordinal)) + ".png");
+                    var uploads = Path.Combine(_hosingEnv.WebRootPath, "uploads/ProductImages");
+                    var fileName = Path.Combine(uploads, _unitOfWork.Repository<Product>().Find(x => x.Id == model.ProductId).Name + "_" + Guid.NewGuid().ToString().Substring(0, Guid.NewGuid().ToString().IndexOf("-", StringComparison.Ordinal)) + ".png");
                     pImage.ImagePath = Path.GetFileName(fileName);
-                    _repoProductImage.Insert(pImage);
+                    await _unitOfWork.Repository<ProductImage>().InsertAsync(pImage);
                     using (var fileStream = new FileStream(Path.Combine(uploads, fileName), FileMode.Create))
                     {
                         await model.ImageFile.CopyToAsync(fileStream);
@@ -148,21 +150,21 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpGet]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            ProductImage productImage = _repoProductImage.GetById(id);
+            ProductImage productImage = await _unitOfWork.Repository<ProductImage>().GetByIdAsync(id);
 
             return PartialView("_DeleteProductImage", productImage?.Title);
         }
 
         [HttpPost]
-        public IActionResult Delete(int id, IFormCollection form)
+        public async Task<IActionResult> Delete(int id, IFormCollection form)
         {
-            ProductImage productImage = _repoProductImage.GetById(id);
+            ProductImage productImage = await _unitOfWork.Repository<ProductImage>().GetByIdAsync(id);
             if (productImage != null)
             {
-                _repoProductImage.Delete(productImage);
-                var fullPath = Path.Combine(_hostingEnv.WebRootPath, "uploads/ProductImages/"+productImage.ImagePath);
+                await _unitOfWork.Repository<ProductImage>().DeleteAsync(productImage);
+                var fullPath = Path.Combine(_hosingEnv.WebRootPath, "uploads/ProductImages/"+productImage.ImagePath);
                 if (System.IO.File.Exists(fullPath))
                 {
                     System.IO.File.Delete(fullPath);
@@ -175,7 +177,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 
         public List<SelectListItem> GetAllCategories()
         {
-            var category=_repoCategory.GetAll().Select(x => new SelectListItem
+            var category =  _unitOfWork.Repository<Category>().GetAll().Select(x => new SelectListItem
             {
                 Text = x.Name,
                 Value = x.Id.ToString()
@@ -190,7 +192,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         public JsonResult GetProducts(string term)
         {
             term = term.ToLower();
-            var productList = _repoProduct.GetAll().Where(x => x.Name.ToLower().StartsWith(term)).Select(x => new { label = x.Name, val = x.Id }).ToList();
+            var productList = _unitOfWork.Repository<Product>().GetAll().Where(x => x.Name.ToLower().StartsWith(term)).Select(x => new { label = x.Name, val = x.Id }).ToList();
 
 
             return Json(productList);
@@ -199,7 +201,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         //Showing image
         public IActionResult ImageView(int id)
         {
-            ProductImage img = _repoProductImage.GetById(id);
+            ProductImage img = _unitOfWork.Repository<ProductImage>().GetById(id);
             string fileName = img.ImagePath;
             return PartialView("_ImageView",fileName);
         }

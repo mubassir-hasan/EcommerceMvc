@@ -6,59 +6,40 @@ using Ecommerce_MVC_Core.Code;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel.Public;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce_MVC_Core.Controllers
 {
     public class OrderController : Controller
     {
-        private readonly IRepository<Category> _repoCategory;
-        private readonly IRepository<Product> _repoProduct;
-        private readonly IRepository<Brand> _repoBrand;
-        private readonly IRepository<Unit> _repoUnit;
+        //private readonly IRepository<Category> _repoCategory;
+        //private readonly IRepository<Product> _repoProduct;
+        //private readonly IRepository<Brand> _repoBrand;
+        //private readonly IRepository<Unit> _repoUnit;
 
-        private readonly IRepository<ProductStock> _repoProductStock;
-        private readonly IRepository<ProductImage> _repoProductImage;
-        private readonly IRepository<Orders> _repoOrders;
-        private readonly IRepository<OrderDetails> _repoOrderDetails;
-        private readonly IRepository<Country> _repoCountry;
-        private readonly IRepository<City> _repoCity;
-        private readonly IRepository<Location> _repoLocation;
-        private readonly IRepository<PaymentMethod> _repoPaymentMethod;
+        //private readonly IRepository<ProductStock> _repoProductStock;
+        //private readonly IRepository<ProductImage> _repoProductImage;
+        //private readonly IRepository<Orders> _repoOrders;
+        //private readonly IRepository<OrderDetails> _repoOrderDetails;
+        //private readonly IRepository<Country> _repoCountry;
+        //private readonly IRepository<City> _repoCity;
+        //private readonly IRepository<Location> _repoLocation;
+        //private readonly IRepository<PaymentMethod> _repoPaymentMethod;
         private readonly UserManager<ApplicationUsers> _userManager;
 
-        public OrderController(IRepository<Category> repoCategory, 
-            IRepository<Product> repoProduct, 
-            IRepository<Brand> repoBrand, 
-            IRepository<Unit> repoUnit, 
-            IRepository<ProductStock> repoProductStock, 
-            IRepository<ProductImage> repoProductImage,
-            IRepository<Orders> repoOrders, 
-            IRepository<OrderDetails> repoOrderDetails,
-            IRepository<Country> repoCountry, 
-            IRepository<City> repoCity,
-            IRepository<Location> repoLocation,
-            IRepository<PaymentMethod> repoPaymentMethod,
-            UserManager<ApplicationUsers> userManager)
-        {
-            _repoCountry = repoCountry;
-            _repoCity = repoCity;
-            _repoLocation = repoLocation;
-            _repoPaymentMethod = repoPaymentMethod;
+        private readonly IUnitOfWork _unitOfWork;
 
-            _repoCategory = repoCategory;
-            _repoProduct = repoProduct;
-            _repoBrand = repoBrand;
-            _repoUnit = repoUnit;
-            _repoProductStock = repoProductStock;
-            _repoProductImage = repoProductImage;
-            _repoOrders = repoOrders;
-            _repoOrderDetails = repoOrderDetails;
+
+        public OrderController(IUnitOfWork unitOfWork, UserManager<ApplicationUsers> userManager)
+        {
+            _unitOfWork = unitOfWork;
             _userManager = userManager;
         }
 
@@ -73,6 +54,11 @@ namespace Ecommerce_MVC_Core.Controllers
             {
                 itemInCart = valu.Value;
             }
+
+            var dbProducts = _unitOfWork.Repository<Product>().Query()
+                .Include(b => b.Brand)
+                .Include( p => p.ProductImages)
+                .Include(ps => ps.ProductStocks);
             if (addToCartList!=null)
             {
                 addToCartList.ForEach(c =>
@@ -82,19 +68,24 @@ namespace Ecommerce_MVC_Core.Controllers
                     orderDetails.ProductName = c.ProductName;
                     orderDetails.FinalPrice = c.FinalPrice;
                     orderDetails.Quantity = c.Quantity;
-                    orderDetails.BrandId = _repoProduct.GetAll().First(x => x.Id == c.ProductId).BrandId;
-                    orderDetails.BrandName = _repoBrand.GetAll().First(x => x.Id == orderDetails.BrandId).Name;
-                    orderDetails.Price = _repoProduct.GetAll().First(x => x.Id == c.ProductId).Price;
-                    orderDetails.ImagePath = _repoProductImage.GetAll().FirstOrDefault(x => x.ProductId == c.ProductId)
-                        ?.ImagePath;
-                    var pStock = _repoProductStock.GetAll().First(x => x.ProductId == c.ProductId);
-                    if (pStock!=null)
+                    var product = dbProducts.FirstOrDefault(x => x.Id == c.ProductId);
+
+                    if (product!=null)
                     {
-                        orderDetails.Stock = (pStock.InQuantity - pStock.OutQuantity) < 1
-                            ? 0
-                            : pStock.InQuantity - pStock.OutQuantity;
+                        orderDetails.BrandId = product.BrandId;
+                        orderDetails.BrandName = product.Brand.Name;
+                        orderDetails.Price = product.Price;
+                        orderDetails.ImagePath =product.ProductImages.FirstOrDefault(x => x.ProductId == c.ProductId)
+                            ?.ImagePath;
+                        var pStock = product.ProductStocks.First(x => x.ProductId == c.ProductId);
+                        if (pStock!=null)
+                        {
+                            orderDetails.Stock = (pStock.InQuantity - pStock.OutQuantity) < 1
+                                ? 0
+                                : pStock.InQuantity - pStock.OutQuantity;
+                        }
+                        model.Add(orderDetails);
                     }
-                    model.Add(orderDetails);
                 });
             }
 
@@ -105,7 +96,8 @@ namespace Ecommerce_MVC_Core.Controllers
         public IActionResult Index(IEnumerable<OrderDetailsViewModel> product)
         {
             List<AddToCartViewModel> addToCartList = HttpContext.Session.Get<List<AddToCartViewModel>>("CartItem");
-            List <AddToCartViewModel> moderCart=new List<AddToCartViewModel>();
+            
+            List <AddToCartViewModel> modelCart=new List<AddToCartViewModel>();
 
             int itemInCart = 0;
             double estimatePrice = 0;
@@ -115,7 +107,7 @@ namespace Ecommerce_MVC_Core.Controllers
             {
                 itemInCart = valu.Value;
             }
-            HttpContext.Session.Set<List<AddToCartViewModel>>("CartItem", moderCart);
+            HttpContext.Session.Set<List<AddToCartViewModel>>("CartItem", modelCart);
             foreach (var item in product)
             {
                 AddToCartViewModel cart = new AddToCartViewModel();
@@ -125,10 +117,10 @@ namespace Ecommerce_MVC_Core.Controllers
                 cart.Quantity = item.Quantity;
                 estimatePrice = item.Quantity * item.FinalPrice;
                 totalPrice = totalPrice + estimatePrice;
-                moderCart.Add(cart);
+                modelCart.Add(cart);
                 
             }
-            HttpContext.Session.Set<List<AddToCartViewModel>>("CartItem", moderCart);
+            HttpContext.Session.Set<List<AddToCartViewModel>>("CartItem", modelCart);
             itemInCart = HttpContext.Session.Get<List<AddToCartViewModel>>("CartItem").Count;
             HttpContext.Session.SetInt32("itemCount", itemInCart);
             HttpContext.Session.SetInt32("TotalPrice",Convert.ToInt32(totalPrice));
@@ -143,7 +135,7 @@ namespace Ecommerce_MVC_Core.Controllers
             NewOrderViewModel model=new NewOrderViewModel();
             model.OrderDetailsList = GetItemOrderDetails();
 
-            model.Countries  = _repoCountry.GetAll().Select(c => new SelectListItem
+            model.Countries  = _unitOfWork.Repository<Country>().GetAll().Select(c => new SelectListItem
             {
                 Text = c.Name,
                 Value = c.Id.ToString()
@@ -153,7 +145,7 @@ namespace Ecommerce_MVC_Core.Controllers
             model.Countries.Add(new SelectListItem { Text = "--Select--", Value = "0", Selected = true });
             model.Cities = new List<SelectListItem>();
             model.Locations=new List<SelectListItem>();
-            model.PaymentMethods = _repoPaymentMethod.GetAll().Select(p => new SelectListItem
+            model.PaymentMethods = _unitOfWork.Repository<PaymentMethod>().GetAll().Select(p => new SelectListItem
             {
                 Text = p.Name,
                 Value = p.Id.ToString()
@@ -200,8 +192,8 @@ namespace Ecommerce_MVC_Core.Controllers
             };
 
             orders.UserId = user.Id;
-            orders.DeliveryCharge = _repoLocation.GetAll().First(x => x.Id == model.LocationId).Charge;
-            _repoOrders.Insert(orders);
+            orders.DeliveryCharge = _unitOfWork.Repository<Location>().Find(x => x.Id == model.LocationId).Charge;
+            _unitOfWork.Repository<Orders>().Insert(orders);
             
             //Inserting Order Details
 
@@ -220,8 +212,8 @@ namespace Ecommerce_MVC_Core.Controllers
                 orderDetails.Quantity = addToCartList[i].Quantity;
                 orderDetails.Rate = addToCartList[i].FinalPrice;
                 orderDetails.Remarks = "";
-                    
-                _repoOrderDetails.Insert(orderDetails);
+
+                _unitOfWork.Repository<OrderDetails>().Insert(orderDetails);
                     
              }
             
@@ -246,8 +238,15 @@ namespace Ecommerce_MVC_Core.Controllers
             {
                 itemInCart = valu.Value;
             }
+
+
             if (addToCartList != null)
             {
+                var dbProducts = _unitOfWork.Repository<Product>().Query()
+                    .Include(b => b.Brand)
+                    .Include(p => p.ProductImages)
+                    .Include(ps => ps.ProductStocks);
+
                 addToCartList.ForEach(c =>
                 {
                     OrderDetailsViewModel orderDetails = new OrderDetailsViewModel();
@@ -255,19 +254,23 @@ namespace Ecommerce_MVC_Core.Controllers
                     orderDetails.ProductName = c.ProductName;
                     orderDetails.FinalPrice = c.FinalPrice;
                     orderDetails.Quantity = c.Quantity;
-                    orderDetails.BrandId = _repoProduct.GetAll().First(x => x.Id == c.ProductId).BrandId;
-                    orderDetails.BrandName = _repoBrand.GetAll().First(x => x.Id == orderDetails.BrandId).Name;
-                    orderDetails.Price = _repoProduct.GetAll().First(x => x.Id == c.ProductId).Price;
-                    orderDetails.ImagePath = _repoProductImage.GetAll().FirstOrDefault(x => x.ProductId == c.ProductId)
-                        ?.ImagePath;
-                    var pStock = _repoProductStock.GetAll().First(x => x.ProductId == c.ProductId);
-                    if (pStock != null)
+                    var product = dbProducts.FirstOrDefault(x => x.Id == c.ProductId);
+                    if (product!=null)
                     {
-                        orderDetails.Stock = (pStock.InQuantity - pStock.OutQuantity) < 1
-                            ? 0
-                            : pStock.InQuantity - pStock.OutQuantity;
+                        orderDetails.BrandId = product.BrandId;
+                        orderDetails.BrandName = product.Brand.Name;
+                        orderDetails.Price = product.Price;
+                        orderDetails.ImagePath = product.ProductImages.FirstOrDefault(x => x.ProductId == c.ProductId)
+                            ?.ImagePath;
+                        var pStock = product.ProductStocks.First(x => x.ProductId == c.ProductId);
+                        if (pStock != null)
+                        {
+                            orderDetails.Stock = (pStock.InQuantity - pStock.OutQuantity) < 1
+                                ? 0
+                                : pStock.InQuantity - pStock.OutQuantity;
+                        }
+                        model.Add(orderDetails);
                     }
-                    model.Add(orderDetails);
                 });
             }
             return model;
@@ -290,7 +293,7 @@ namespace Ecommerce_MVC_Core.Controllers
             AddToCartViewModel model=new AddToCartViewModel();
 
             List<AddToCartViewModel> addToCartList = HttpContext.Session.Get<List<AddToCartViewModel>>("CartItem");
-            string name = "";
+            //string name = "";
             model =addToCartList.FirstOrDefault(x => x.ProductId == product);
             if (model != null)
             {

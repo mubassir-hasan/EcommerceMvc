@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -15,17 +16,18 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 {
     public class ProductCommentsController : Controller
     {
-        
 
-        private readonly IRepository<Product> _repoProduct;
+
         private readonly UserManager<ApplicationUsers> _userManager;
-        private readonly IRepository<ProductComments> _repoProductComments;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ProductCommentsController(IRepository<Product> repoProduct, UserManager<ApplicationUsers> userManager, IRepository<ProductComments> repoProductComments)
+        public ProductCommentsController(
+            IUnitOfWork unitOfWork,
+            UserManager<ApplicationUsers> userManager
+        )
         {
-            _repoProduct = repoProduct;
             _userManager = userManager;
-            _repoProductComments = repoProductComments;
+            _unitOfWork = unitOfWork;
         }
 
 
@@ -49,7 +51,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         public List<ProductCommentsListViewModel> GetAllComments()
         {
             List<ProductCommentsListViewModel> commentsList=new List<ProductCommentsListViewModel>();
-            _repoProductComments.GetAll().ToList().ForEach(x =>
+            _unitOfWork.Repository<ProductComments>().GetAllInclude(x=>x.Product).ToList().ForEach(x =>
             {
                 ProductCommentsListViewModel productComments = new ProductCommentsListViewModel
                 {
@@ -59,7 +61,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     AddedDate = x.AddedDate,
                     UserId = x.UserId,
                     Comment = x.Comment,
-                    ProductName = _repoProduct.GetAll().First(p => p.Id == x.ProductId).Name,
+                    ProductName = x.Product.Name,
                     
                 };
                 ApplicationUsers user = _userManager.FindByIdAsync(x.UserId).Result;
@@ -71,20 +73,20 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpGet]
-        public IActionResult DeleteComment(int id)
+        public async Task<IActionResult> DeleteComment(int id)
         {
-            ProductComments comments = _repoProductComments.GetById(id);
+            ProductComments comments =await _unitOfWork.Repository<ProductComments>().GetByIdAsync(id);
 
             return PartialView("_DeleteComment", comments?.Comment);
         }
 
         [HttpPost]
-        public IActionResult DeleteUnit(int id, IFormCollection form)
+        public async Task<IActionResult> DeleteUnit(int id, IFormCollection form)
         {
-            ProductComments comments = _repoProductComments.GetById(id);
+            ProductComments comments = await _unitOfWork.Repository<ProductComments>().GetByIdAsync(id);
             if (comments != null)
             {
-                _repoProductComments.Delete(comments);
+                await _unitOfWork.Repository<ProductComments>().DeleteAsync(comments);
             }
             return RedirectToAction(nameof(Index));
         }

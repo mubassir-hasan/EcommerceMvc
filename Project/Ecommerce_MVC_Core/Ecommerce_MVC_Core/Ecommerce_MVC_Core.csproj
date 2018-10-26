@@ -1,8 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Data\IRepository.cs" />
+    <Compile Remove="Data\Repository.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CodingUpAStorm.VaderSharp" Version="1.0.4" />
@@ -10,6 +15,7 @@
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.0.1" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.1" />
+    <PackageReference Include="StackifyMiddleware" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>

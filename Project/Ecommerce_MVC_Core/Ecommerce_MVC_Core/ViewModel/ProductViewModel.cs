@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Ecommerce_MVC_Core.ViewModel.Public;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Ecommerce_MVC_Core.ViewModel
@@ -30,6 +31,10 @@ namespace Ecommerce_MVC_Core.ViewModel
         public List<SelectListItem> CategoryList { get; set; }
         public List<SelectListItem> BrandList { get; set; }
         public List<SelectListItem> UnitList { get; set; }
+
+        //Image Upload
+        public IList<IFormFile> Images { get; set; }
+        public IFormFile Manual { get; set; }
     }
 
     public class ProductListViewModel

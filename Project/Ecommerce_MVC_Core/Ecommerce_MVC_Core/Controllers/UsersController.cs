@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -20,20 +21,17 @@ namespace Ecommerce_MVC_Core.Controllers
     {
         private readonly UserManager<ApplicationUsers> _userManager;
         private readonly RoleManager<ApplicationRoles> _roleManager;
-        private readonly IRepository<Country> _repoCountry;
-        private readonly IRepository<City> _repoCity;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly SignInManager<ApplicationUsers> _signInManager;
 
         public UsersController(UserManager<ApplicationUsers> userManager,
             RoleManager<ApplicationRoles> roleManager,
-            IRepository<Country> repoCountry,
-            IRepository<City> repoCity,
+            IUnitOfWork unitOfWork,
             SignInManager<ApplicationUsers> signInManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
-            _repoCountry = repoCountry;
-            _repoCity = repoCity;
+            _unitOfWork = unitOfWork;
             _signInManager = signInManager;
         }
 
@@ -83,7 +81,7 @@ namespace Ecommerce_MVC_Core.Controllers
         {
             UsersViewModel model = new UsersViewModel
             {
-                Countries = _repoCountry.GetAll().Select(c => new SelectListItem
+                Countries = _unitOfWork.Repository<Country>().GetAll().Select(c => new SelectListItem
                 {
                     Text = c.Name,
                     Value = c.Id.ToString()
@@ -309,7 +307,7 @@ namespace Ecommerce_MVC_Core.Controllers
         [HttpGet]
         public ActionResult GetCity(int id)
         {
-            var ddlCity = _repoCity.GetAll().Where(x => x.CountryId == id).OrderBy(x => x.Name).ToList();
+            var ddlCity = _unitOfWork.Repository<City>().GetAll().Where(x => x.CountryId == id).OrderBy(x => x.Name).ToList();
             List<SelectListItem> cities = new List<SelectListItem>
             {
                 new SelectListItem { Text = "--Select State--", Value = "0" }

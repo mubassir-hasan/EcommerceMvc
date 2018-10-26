@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,61 +13,49 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 {
     public class PaymentMethodController : Controller
     {
-        private readonly IRepository<PaymentMethod> _repoPaymentMethod;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public PaymentMethodController( IRepository<PaymentMethod> repoPaymentMethod)
+        public PaymentMethodController(
+            IUnitOfWork unitOfWork
+        )
         {
-            
-            _repoPaymentMethod = repoPaymentMethod;
+            _unitOfWork = unitOfWork;
         }
 
-        public IActionResult Index(string search="")
+        public async Task<IActionResult> Index(string search="")
         {
 
             List<PaymentMethodListViewModel> model = new List<PaymentMethodListViewModel>();
-
+            var dbData = await _unitOfWork.Repository<PaymentMethod>().GetAllAsync();
             if (!String.IsNullOrEmpty(search))
             {
-                _repoPaymentMethod.GetAll().Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList().ForEach(b =>
-                {
-                    PaymentMethodListViewModel payment = new PaymentMethodListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                        Description = b.Description,
-                        Processor = b.Processor,
-                    };
-
-                    model.Add(payment);
-                });
+                dbData = dbData.Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList();
                 ViewBag.SearchString = search;
             }
-            else
-            {
-                _repoPaymentMethod.GetAll().ToList().ForEach(b =>
-                {
-                    PaymentMethodListViewModel payment = new PaymentMethodListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                        Description = b.Description,
-                        Processor = b.Processor,
-                    };
 
-                    model.Add(payment);
-                });
+            foreach (var b in dbData)
+            {
+                PaymentMethodListViewModel payment = new PaymentMethodListViewModel
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    Description = b.Description,
+                    Processor = b.Processor,
+                };
+
+                model.Add(payment);
             }
 
             return View(model);
         }
 
         [HttpGet]
-        public IActionResult AddEditPaymentMethod(int id)
+        public async Task<IActionResult> AddEditPaymentMethod(int id)
         {
             PaymentMethodViewModel model = new PaymentMethodViewModel();
             if (id > 0)
             {
-                PaymentMethod payment = _repoPaymentMethod.GetById(id);
+                PaymentMethod payment = await _unitOfWork.Repository<PaymentMethod>().GetByIdAsync(id);
                 model.Name = payment.Name;
                 model.Description = payment.Description;
                 model.Processor = payment.Processor;
@@ -76,7 +65,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpPost]
-        public IActionResult AddEditPaymentMethod(int id, PaymentMethodViewModel model)
+        public async Task<IActionResult> AddEditPaymentMethod(int id, PaymentMethodViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -85,14 +74,14 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 
             if (id > 0)
             {
-                PaymentMethod payment = _repoPaymentMethod.GetById(id);
+                PaymentMethod payment = await _unitOfWork.Repository<PaymentMethod>().GetByIdAsync(id);
                 if (payment != null)
                 {
                     payment.Name = model.Name;
                     payment.ModifiedDate = DateTime.Now;
                     payment.Description = model.Description;
                     payment.Processor = model.Processor;
-                    _repoPaymentMethod.Update(payment);
+                    await _unitOfWork.Repository<PaymentMethod>().UpdateAsync(payment);
                 }
             }
             else
@@ -105,26 +94,26 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     Description = model.Description,
                     Processor = model.Processor
                 };
-                _repoPaymentMethod.Insert(payment);
+                await _unitOfWork.Repository<PaymentMethod>().InsertAsync(payment);
             }
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
-        public IActionResult DeletePaymentMethod(int id)
+        public async Task<IActionResult> DeletePaymentMethod(int id)
         {
-            PaymentMethod payment = _repoPaymentMethod.GetById(id);
+            PaymentMethod payment = await _unitOfWork.Repository<PaymentMethod>().GetByIdAsync(id);
 
             return PartialView("_DeletePaymentMethod", payment?.Name);
         }
 
         [HttpPost]
-        public IActionResult DeletePaymentMethod(int id, IFormCollection form)
+        public async Task<IActionResult> DeletePaymentMethod(int id, IFormCollection form)
         {
-            PaymentMethod payment = _repoPaymentMethod.GetById(id);
+            PaymentMethod payment = await _unitOfWork.Repository<PaymentMethod>().GetByIdAsync(id);
             if (payment != null)
             {
-                _repoPaymentMethod.Delete(payment);
+                await _unitOfWork.Repository<PaymentMethod>().DeleteAsync(payment);
             }
             return RedirectToAction(nameof(Index));
         }

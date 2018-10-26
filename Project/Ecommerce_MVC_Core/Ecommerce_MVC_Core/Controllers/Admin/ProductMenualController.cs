@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -13,17 +14,14 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 {
     public class ProductMenualController : Controller
     {
-        private readonly IRepository<ProductManual> _repoProductMenual;
-        private readonly IRepository<Product> _repoProduct;
-        private readonly IRepository<Category> _repoCategory;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IHostingEnvironment _hostingEnv;
 
-        public ProductMenualController(IRepository<ProductManual> repoProductMenual, IRepository<Product> repoProduct, IRepository<Category> repoCategory, IHostingEnvironment hostingEnv)
+        public ProductMenualController(IUnitOfWork unitOfWork, IHostingEnvironment hostingEnv)
         {
-            _repoProductMenual = repoProductMenual;
-            _repoProduct = repoProduct;
-            _repoCategory = repoCategory;
+            _unitOfWork = unitOfWork;
             _hostingEnv = hostingEnv;
+
         }
 
         public IActionResult Index()
@@ -32,14 +30,14 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpGet]
-        public IActionResult AddEditProductManual(int id)
+        public async  Task<IActionResult> AddEditProductManual(int id)
         {
             ProductMenualViewModel model=new ProductMenualViewModel();
             if (id>0)
             {
-                ProductManual productManual = _repoProductMenual.GetById(id);
+                ProductManual productManual =await _unitOfWork.Repository<ProductManual>().GetSingleIncludeAsync(p=>p.Id==id,pro=>pro.Product);
                 model.ProductId = productManual.ProductId;
-                model.ProductName = _repoProduct.GetAll().First(x => x.Id == productManual.ProductId).Name;
+                model.ProductName = productManual.Product.Name;
 
             }
             return View(model);
@@ -54,7 +52,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
             }
             if (id>0)
             {
-                ProductManual pManual = _repoProductMenual.GetById(id);
+                ProductManual pManual =  await _unitOfWork.Repository<ProductManual>().GetByIdAsync(id);
                 pManual.ProductId = model.ProductId;
                 pManual.ModifiedDate=DateTime.Now;
             }
@@ -73,7 +71,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     var uploads = Path.Combine(_hostingEnv.WebRootPath, "uploads/ProductManuals");
                     var fileName = Path.Combine(uploads, model.ProductName + "_" + model.ProductId + ".pdf");
                     productManual.ManualName = Path.GetFileName(fileName);
-                    _repoProductMenual.Insert(productManual);
+                     await _unitOfWork.Repository<ProductManual>().InsertAsync(productManual);
                     using (var fileStream = new FileStream(Path.Combine(uploads, fileName), FileMode.Create))
                     {
                         await model.ProductFile.CopyToAsync(fileStream);
@@ -98,7 +96,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         public JsonResult GetProducts(string term)
         {
             term = term.ToLower();
-            var productList = _repoProduct.GetAll().Where(x => x.Name.ToLower().StartsWith(term)).Select(x => new { label = x.Name, val = x.Id }).ToList();
+            var productList = _unitOfWork.Repository<Product>().GetAll().Where(x => x.Name.ToLower().StartsWith(term)).Select(x => new { label = x.Name, val = x.Id }).ToList();
 
 
             return Json(productList);

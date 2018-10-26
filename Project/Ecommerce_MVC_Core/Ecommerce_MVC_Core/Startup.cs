@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Code;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models;
+using Ecommerce_MVC_Core.Repository;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -80,7 +81,8 @@ namespace Ecommerce_MVC_Core
                 options.SlidingExpiration = true;
             });
 
-            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            //services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -92,12 +94,15 @@ namespace Ecommerce_MVC_Core
             app.UseStaticFiles();
             app.UseAuthentication();
             app.UseSession();
+            //First Time User Seed
             //IdentityDbInitializer.SeedData(userManager,roleManager);
 
             
 
             if (env.IsDevelopment())
             {
+
+                app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
             }
@@ -106,8 +111,6 @@ namespace Ecommerce_MVC_Core
                 app.UseExceptionHandler("/Home/Error");
                 
             }
-
-            
 
             app.UseMvc(routes =>
             {

@@ -8,40 +8,32 @@ using Ecommerce_MVC_Core.Data;
 using Microsoft.AspNetCore.Mvc;
 using Ecommerce_MVC_Core.Models;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Ecommerce_MVC_Core.ViewModel.Public;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce_MVC_Core.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IRepository<Category> _repoCategory;
-        private readonly IRepository<Product> _repoProduct;
-        private readonly IRepository<Brand> _repoBrand;
-        private readonly IRepository<Unit> _repoUnit;
-        private readonly IRepository<ProductComments> _repoProductComment;
-        private readonly IRepository<ProductStock> _repoProductStock;
-        private readonly IRepository<ProductImage> _repoProductImage;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUsers> _userManager;
 
-        public HomeController(UserManager<ApplicationUsers> userManager,IRepository<Category> repoCategory, IRepository<Product> repoProduct, IRepository<Brand> repoBrand, IRepository<Unit> repoUnit, IRepository<ProductComments> repoProductComment, IRepository<ProductStock> repoProductStock, IRepository<ProductImage> repoProductImage)
+        public HomeController(
+            UserManager<ApplicationUsers> userManager,
+            IUnitOfWork unitOfWork
+        )
         {
-            
-            _repoCategory = repoCategory;
-            _repoProduct = repoProduct;
-            _repoBrand = repoBrand;
-            _repoUnit = repoUnit;
-            _repoProductComment = repoProductComment;
-            _repoProductStock = repoProductStock;
-            _repoProductImage = repoProductImage;
             _userManager = userManager;
+            _unitOfWork = unitOfWork;
         }
 
-        List<int> test=new List<int>();
+        //List<int> test=new List<int>();
         public IActionResult Index(int categoryId=0)
         {
             HomePage homePage=new HomePage();
@@ -49,42 +41,38 @@ namespace Ecommerce_MVC_Core.Controllers
            
             homePage.ProductList= new List<ProductListViewModel>();
 
-            var cloth = _repoCategory.GetAll().Where(x => x.Name.ToLower() == "Cloth".ToLower() ||
-                                                          x.Name.ToLower() == "garments".ToLower()).ToList();
-            var elec = _repoCategory.GetAll().Where(x => x.Name.ToLower() == "Electronics".ToLower()).ToList();
-            var medici = _repoCategory.GetAll().Where(x => x.Name.ToLower() == "Medicine".ToLower()).ToList();
-            int clothId=0;
-            int electronicsId=0;
-            int medicineId=0;
+            var ctgQuery = _unitOfWork.Repository<Category>().Query();
 
-            if (cloth.Count>0 && elec.Count > 0 && medici.Count > 0)
+            var cloth = ctgQuery.FirstOrDefault(x => x.Name.ToLower() == "Cloth".ToLower() ||
+                                                          x.Name.ToLower() == "garments".ToLower());
+            var elec = ctgQuery.FirstOrDefault(x => x.Name.ToLower() == "Electronics".ToLower());
+            var medici = ctgQuery.FirstOrDefault(x => x.Name.ToLower() == "Medicine".ToLower());
+            homePage.ClothList = new List<ProductListViewModel>();
+            homePage.Electronics = new List<ProductListViewModel>();
+            homePage.MedicineList = new List<ProductListViewModel>();
+            if (cloth!=null)
             {
-                clothId = cloth.First().Id;
-                electronicsId = elec.First().Id;
-                medicineId = medici.First().Id;
+                homePage.ClothList = GetAllProductList(ctgid:cloth.Id, take:8);
             }
-
-            if (clothId > 0 && electronicsId > 0 && medicineId > 0)
+            if (elec != null)
             {
-                homePage.ClothList = GetAllProductList().Where(x => x.CategoryId == clothId).Take(8).ToList();
-                homePage.Electronics = GetAllProductList().Where(x => x.CategoryId == electronicsId).Take(8).ToList();
-                homePage.MedicineList = GetAllProductList().Where(x => x.CategoryId == medicineId).Take(8).ToList();
+                homePage.ClothList = GetAllProductList(ctgid: elec.Id, take: 8);
             }
-            else
+            if (medici != null)
             {
-                homePage.ClothList = new List<ProductListViewModel>();
-                homePage.Electronics = new List<ProductListViewModel>();
-                homePage.MedicineList = new List<ProductListViewModel>();
+                homePage.ClothList = GetAllProductList(ctgid: medici.Id, take: 8);
             }
-            
             homePage.BrandList = GetAllBrand();
+            
             return View(homePage);
         }
+
+       
 
         public List<BrandListViewModel> GetAllBrand()
         {
             List<BrandListViewModel> brandList = new List<BrandListViewModel>();
-            _repoBrand.GetAll().ToList().ForEach(x =>
+            _unitOfWork.Repository<Brand>().GetAll().ToList().ForEach(x =>
             {
                 BrandListViewModel brand = new BrandListViewModel
                 {
@@ -101,7 +89,7 @@ namespace Ecommerce_MVC_Core.Controllers
         public List<CategoryViewModel> GetMainCategory()
         {
             List<CategoryViewModel> categoryList = new List<CategoryViewModel>();
-            _repoCategory.GetAll().Where(x => x.CategoryId == null).ToList().ForEach(c =>
+            _unitOfWork.Repository<Category>().GetAll().Where(x => x.CategoryId == null).ToList().ForEach(c =>
             {
                 CategoryViewModel ctg = new CategoryViewModel
                 {
@@ -121,7 +109,7 @@ namespace Ecommerce_MVC_Core.Controllers
         public List<CategoryViewModel> GetSubCategory(int id)
         {
             List<CategoryViewModel> categoryList = new List<CategoryViewModel>();
-            _repoCategory.GetAll().Where(x => x.CategoryId == id).ToList().ForEach(c =>
+            _unitOfWork.Repository<Category>().GetAll().Where(x => x.CategoryId == id).ToList().ForEach(c =>
             {
                 CategoryViewModel ctg = new CategoryViewModel
                 {
@@ -132,7 +120,7 @@ namespace Ecommerce_MVC_Core.Controllers
                 };
                 ctg.CategoryMenus = GetSubCategory(c.Id);
                 categoryList.Add(ctg);
-                test.Add(c.Id);
+                //test.Add(c.Id);
             });
             return categoryList;
         }
@@ -142,7 +130,7 @@ namespace Ecommerce_MVC_Core.Controllers
         public IActionResult Brand()
         {
             List<BrandListViewModel> brandList = new List<BrandListViewModel>();
-            _repoBrand.GetAll().ToList().ForEach(x =>
+            _unitOfWork.Repository<Brand>().GetAll().ToList().ForEach(x =>
             {
                 BrandListViewModel brand=new BrandListViewModel
                 {
@@ -159,7 +147,7 @@ namespace Ecommerce_MVC_Core.Controllers
         public IActionResult Category()
         {
             List<CategoryListViewModel> categoryList = new List<CategoryListViewModel>();
-            _repoCategory.GetAll().ToList().ForEach(c =>
+            _unitOfWork.Repository<Category>().GetAllInclude(x=>x.Categoris,p=>p.Products).ToList().ForEach(c =>
             {
                 CategoryListViewModel category = new CategoryListViewModel
                 {
@@ -167,8 +155,7 @@ namespace Ecommerce_MVC_Core.Controllers
                     Name = c.Name,
                     Description = c.Description,
                     CategoryId = c.CategoryId,
-                    CategoryParentName = c.CategoryId == null ? "" :
-                        _repoCategory.GetAll().First(x => x.Id == c.CategoryId).Name,
+                    CategoryParentName = c.Categoris?.Name,
                     TotalProduct = c.Products?.Count ?? 0
                 };
                 categoryList.Add(category);
@@ -201,11 +188,95 @@ namespace Ecommerce_MVC_Core.Controllers
             return View(products);
         }
 
-        public List<ProductListViewModel> GetAllProductList( int id=0)
+        public List<ProductListViewModel> GetAllProductList( int id=0,int take=1000,int ctgid=0)
         {
             List<ProductListViewModel> productList = new List<ProductListViewModel>();
+            IQueryable<Product> dbProducts = _unitOfWork.Repository<Product>().Query()
+                .Include(x => x.Brand)
+                .Include(c => c.Category)
+                .Include(u => u.Unit)
+                .Include(pc => pc.ProductCommentses)
+                .Include(pi => pi.ProductImages)
+                .Include(ps => ps.ProductStocks);
+
+            if (ctgid>0)
+            {
+                dbProducts = dbProducts.Where(x => x.CategoryId == ctgid ||x.Category.Id==ctgid);
+            }
+
+            dbProducts = dbProducts.OrderByDescending(x => x.AddedDate).Take(take);
+            foreach (var b in dbProducts)
+            {
+                ProductListViewModel product = new ProductListViewModel
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    Code = b.Code,
+                    Tag = b.Tag,
+                    CategoryId = b.CategoryId,
+                    BrandId = b.BrandId,
+                    UnitId = b.UnitId,
+                    Description = b.Description,
+                    Price = b.Price,
+                    BrandName = b.Brand.Name,
+                    CategoryName = b.Category.Name,
+                    UnitName = b.Unit.Name,
+                    Discount = b.Discount,
+                    FinalPrice = (b.Price - ((b.Price * b.Discount) / 100)),
+                    ProductComments = b.ProductCommentses.Count,
+                    TotalImage = b.ProductImages.Count,
+
+
+                };
+                var prdctStocks = b.ProductStocks.FirstOrDefault(x => x.ProductId == b.Id);
+                product.ProductStocks = prdctStocks != null
+                    ? product.ProductStocks = prdctStocks.InQuantity - prdctStocks.OutQuantity
+                    : product.ProductStocks = 0;
+
+                var productImageList = b.ProductImages.Where(x => x.ProductId == b.Id).ToList();
+
+                var productImage = productImageList.FirstOrDefault();
+                if (productImage != null)
+                {
+                    product.ImageTitle = productImage.Title;
+                    product.ImagePath = productImage.ImagePath;
+                    if (productImageList.Count > 1)
+                    {
+                        product.SecondImagePath = productImageList.Skip(1).First().ImagePath;
+                    }
+                    else
+                    {
+                        product.SecondImagePath = product.ImagePath;
+                    }
+                }
+                else
+                {
+                    product.ImagePath = "noproductimage.png";
+                    product.SecondImagePath = "noproductimage.png";
+                }
+
+
+
+                productList.Add(product);
+            }
             
-                _repoProduct.GetAll().ToList().ForEach(b =>
+            
+            return productList;
+
+        }
+
+
+        public List<ProductListViewModel> GetNewAriveProduct()
+        {
+            List<ProductListViewModel> productsList = new List<ProductListViewModel>();
+
+            
+                _unitOfWork.Repository<Product>().Query().Include(x => x.Brand)
+                    .Include(c => c.Category)
+                    .Include(u => u.Unit)
+                    .Include(pc => pc.ProductCommentses)
+                    .Include(pi => pi.ProductImages)
+                    .Include(ps => ps.ProductStocks).OrderByDescending(x=>x.AddedDate).Take(12).ToList().ForEach(b =>
                 {
                     ProductListViewModel product = new ProductListViewModel
                     {
@@ -218,89 +289,21 @@ namespace Ecommerce_MVC_Core.Controllers
                         UnitId = b.UnitId,
                         Description = b.Description,
                         Price = b.Price,
-                        BrandName = _repoBrand.GetAll().First(x => x.Id == b.BrandId).Name,
-                        CategoryName = _repoCategory.GetAll().First(x => x.Id == b.CategoryId).Name,
-                        UnitName = _repoUnit.GetAll().First(x => x.Id == b.UnitId).Name,
+                        BrandName = b.Brand.Name,
+                        CategoryName = b.Category.Name,
+                        UnitName = b.Unit.Name,
                         Discount = b.Discount,
                         FinalPrice = (b.Price - ((b.Price * b.Discount) / 100)),
-                        ProductComments = _repoProductComment.GetAll().Count(x => x.ProductId == b.Id),
-                        TotalImage = _repoProductImage.GetAll().Count(x => x.ProductId == b.Id),
-
-
+                        ProductComments = b.ProductCommentses.Count(x => x.ProductId == b.Id),
+                        TotalImage = b.ProductImages.Count(x => x.ProductId == b.Id)
                     };
-                    var prdctStocks = _repoProductStock.GetAll().FirstOrDefault(x => x.ProductId == b.Id);
-                    product.ProductStocks = prdctStocks != null
-                        ? product.ProductStocks = prdctStocks.InQuantity - prdctStocks.OutQuantity
-                        : product.ProductStocks = 0;
-
-                    var productImageList = _repoProductImage.GetAll().Where(x => x.ProductId == b.Id).ToList();
-
-                    var productImage = productImageList.FirstOrDefault();
-                    if (productImage != null)
-                    {
-                        product.ImageTitle = productImage.Title;
-                        product.ImagePath = productImage.ImagePath;
-                        if (productImageList.Count > 1)
-                        {
-                            product.SecondImagePath = productImageList.Skip(1).First().ImagePath;
-                        }
-                        else
-                        {
-                            product.SecondImagePath = product.ImagePath;
-                        }
-                    }
-                    else
-                    {
-                        product.ImagePath = "noproductimage.png";
-                        product.SecondImagePath = "noproductimage.png";
-                    }
-
-
-
-                    productList.Add(product);
+                    var prdctStocks = b.ProductStocks.FirstOrDefault(x => x.ProductId == b.Id);
+                    product.ProductStocks = prdctStocks != null ? product.ProductStocks = prdctStocks.InQuantity - prdctStocks.OutQuantity : product.ProductStocks = 0;
+                    productsList.Add(product);
                 });
-            
-            
-            return productList;
-
-        }
 
 
-        public List<ProductListViewModel> GetNewAriveProduct()
-        {
-            List<ProductListViewModel> productsList = new List<ProductListViewModel>();
-            
-                test.ForEach(i =>
-                {
-                    _repoProduct.GetAll().Where(x => x.CategoryId == i).ToList().ForEach(b =>
-                    {
-                        ProductListViewModel product = new ProductListViewModel
-                        {
-                            Id = b.Id,
-                            Name = b.Name,
-                            Code = b.Code,
-                            Tag = b.Tag,
-                            CategoryId = b.CategoryId,
-                            BrandId = b.BrandId,
-                            UnitId = b.UnitId,
-                            Description = b.Description,
-                            Price = b.Price,
-                            BrandName = _repoBrand.GetAll().First(x => x.Id == b.BrandId).Name,
-                            CategoryName = _repoCategory.GetAll().First(x => x.Id == b.CategoryId).Name,
-                            UnitName = _repoUnit.GetAll().First(x => x.Id == b.UnitId).Name,
-                            Discount = b.Discount,
-                            FinalPrice = (b.Price - ((b.Price * b.Discount) / 100)),
-                            ProductComments = _repoProductComment.GetAll().Count(x => x.ProductId == b.Id),
-                            TotalImage = _repoProductImage.GetAll().Count(x => x.ProductId == b.Id)
-                        };
-                        var prdctStocks = _repoProductStock.GetAll().FirstOrDefault(x => x.ProductId == b.Id);
-                        product.ProductStocks = prdctStocks != null ? product.ProductStocks = prdctStocks.InQuantity - prdctStocks.OutQuantity : product.ProductStocks = 0;
-                        productsList.Add(product);
-                    });
-                });
-            
 
-            
 
             return productsList;
         }
@@ -325,10 +328,10 @@ namespace Ecommerce_MVC_Core.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        public IActionResult QuickViewProduct(int product)
+        public async Task<IActionResult> QuickViewProduct(int product)
         {
             ProductListViewModel pList = new ProductListViewModel();
-           Product pro= _repoProduct.GetById(product);
+           Product pro= await _unitOfWork.Repository<Product>().GetSingleIncludeAsync(x=>x.Id== product,b=>b.Brand,c=>c.Category,u=>u.Unit,rc=>rc.ProductCommentses,pi=>pi.ProductImages);
             if (pro!=null)
             {
 
@@ -341,18 +344,18 @@ namespace Ecommerce_MVC_Core.Controllers
                 pList.UnitId = pro.UnitId;
                 pList.Description = pro.Description;
                 pList.Price = pro.Price;
-                pList.BrandName = _repoBrand.GetAll().First(x => x.Id == pro.BrandId).Name;
-                pList.CategoryName = _repoCategory.GetAll().First(x => x.Id == pro.CategoryId).Name;
-                pList.UnitName = _repoUnit.GetAll().First(x => x.Id == pro.UnitId).Name;
+                pList.BrandName = pro.Brand.Name;
+                pList.CategoryName = pro.Category.Name;
+                pList.UnitName = pro.Unit.Name;
                 pList.Discount = pro.Discount;
                 pList.FinalPrice = (pro.Price - ((pro.Price * pro.Discount) / 100));
-                pList.ProductComments = _repoProductComment.GetAll().Count(x => x.ProductId == pro.Id);
-                pList.TotalImage = _repoProductImage.GetAll().Count(x => x.ProductId == pro.Id);
+                pList.ProductComments =pro.ProductCommentses.Count(x => x.ProductId == pro.Id);
+                pList.TotalImage = pro.ProductImages.Count(x => x.ProductId == pro.Id);
 
 
                 
 
-                var productImageList = _repoProductImage.GetAll().Where(x => x.ProductId == pro.Id).ToList();
+                var productImageList = pro.ProductImages.Where(x => x.ProductId == pro.Id).ToList();
 
                 var productImage = productImageList.FirstOrDefault();
                 if (productImage != null)
@@ -366,10 +369,10 @@ namespace Ecommerce_MVC_Core.Controllers
             return PartialView("_QuickView", pList);
         }
 
-        public IActionResult ProductDetails(int product)
+        public async Task<IActionResult> ProductDetails(int product)
         {
             ProductListViewModel pList = new ProductListViewModel();
-            Product pro = _repoProduct.GetById(product);
+            Product pro = await _unitOfWork.Repository<Product>().GetSingleIncludeAsync(x => x.Id == product, b => b.Brand, c => c.Category, u => u.Unit, rc => rc.ProductCommentses, pi => pi.ProductImages); ;
             if (pro != null)
             {
 
@@ -382,18 +385,18 @@ namespace Ecommerce_MVC_Core.Controllers
                 pList.UnitId = pro.UnitId;
                 pList.Description = pro.Description;
                 pList.Price = pro.Price;
-                pList.BrandName = _repoBrand.GetAll().First(x => x.Id == pro.BrandId).Name;
-                pList.CategoryName = _repoCategory.GetAll().First(x => x.Id == pro.CategoryId).Name;
-                pList.UnitName = _repoUnit.GetAll().First(x => x.Id == pro.UnitId).Name;
+                pList.BrandName = pro.Brand.Name;
+                pList.CategoryName = pro.Category.Name;
+                pList.UnitName = pro.Unit.Name;
                 pList.Discount = pro.Discount;
                 pList.FinalPrice = (pro.Price - ((pro.Price * pro.Discount) / 100));
-                pList.ProductComments = _repoProductComment.GetAll().Count(x => x.ProductId == pro.Id);
-                pList.TotalImage = _repoProductImage.GetAll().Count(x => x.ProductId == pro.Id);
+                pList.ProductComments = pro.ProductCommentses.Count(x => x.ProductId == pro.Id);
+                pList.TotalImage = pro.ProductImages.Count(x => x.ProductId == pro.Id);
                 pList.ProductCommentsList = GetAllCommentsByProduct(pro.Id);
 
                 pList.ImageList=new List<ProductImageListViewModel>();
 
-                var productImageList = _repoProductImage.GetAll().Where(x => x.ProductId == pro.Id).ToList();
+                var productImageList = pro.ProductImages.Where(x => x.ProductId == pro.Id).ToList();
 
                 var productImage = productImageList.FirstOrDefault();
                 if (productImage != null)
@@ -419,13 +422,13 @@ namespace Ecommerce_MVC_Core.Controllers
         public List<CommentsListViewModel> GetAllCommentsByProduct(int productId)
         {
             List<CommentsListViewModel> commentsList=new List<CommentsListViewModel>();
-            _repoProductComment.GetAll().Where(x => x.ProductId == productId).OrderByDescending(x=>x.AddedDate).ToList().ForEach(x =>
+            _unitOfWork.Repository<ProductComments>().GetIncludeList(x => x.ProductId == productId,p=>p.Product).OrderByDescending(x=>x.AddedDate).ToList().ForEach(x =>
             {
                 CommentsListViewModel comments=new CommentsListViewModel
                 {
                     ProductId = x.ProductId,
                     Comment = x.Comment,
-                    ProductName = _repoProduct.GetAll().First(p=>p.Id==x.ProductId).Name,
+                    ProductName = x.Product.Name,
                     UserId = x.UserId
                 };
                 DateTime date = x.AddedDate;
@@ -441,7 +444,7 @@ namespace Ecommerce_MVC_Core.Controllers
 
         [Authorize]
         [HttpPost]
-        public IActionResult AddComment(string commentMessage,int pro)
+        public async Task<IActionResult> AddComment(string commentMessage,int pro)
         {
             if (commentMessage!=null)
             {
@@ -452,7 +455,7 @@ namespace Ecommerce_MVC_Core.Controllers
                 comments.AddedDate=DateTime.Now;
                 comments.ModifiedDate=DateTime.Now;
                 comments.UserId = user.Id;
-               _repoProductComment.Insert(comments);
+               await _unitOfWork.Repository<ProductComments>().InsertAsync(comments);
                
             }
             return RedirectToAction("ProductDetails", new { product = pro });
@@ -462,12 +465,12 @@ namespace Ecommerce_MVC_Core.Controllers
         #region ProductCart
 
         [HttpGet]
-        public IActionResult AddToCart(int product)
+        public async Task<IActionResult> AddToCart(int product)
         {
             
             if (product>0)
             {
-                Models.Admin.Product pro = _repoProduct.GetById(product);
+                Models.Admin.Product pro =await _unitOfWork.Repository<Product>().GetByIdAsync(product);
                 if (pro!=null)
                 {
                     AddToCartViewModel addTo=new AddToCartViewModel

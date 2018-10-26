@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,19 +14,13 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 {
     public class LocationController : Controller
     {
-        private readonly IRepository<Country> _repoCountry;
-        private readonly IRepository<City> _repoCity;
-        private readonly IRepository<Location> _repoLocation;
+        private readonly IUnitOfWork _unitOfWork;
 
         public LocationController(
-            IRepository<Country> repoCountry,
-            IRepository<City> repoCity,
-            IRepository<Location> repoLocation
-            )
+            IUnitOfWork unitOfWork
+        )
         {
-            _repoCountry = repoCountry;
-            _repoCity = repoCity;
-            _repoLocation = repoLocation;
+            _unitOfWork = unitOfWork;
         }
 
         public IActionResult Index()
@@ -38,49 +33,37 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         
 
         
-        public IActionResult CountryIndex(string search="")
+        public async Task<IActionResult> CountryIndex(string search="")
         {
             List<CountryListViewModel> model=new List<CountryListViewModel>();
-
+            var dbData = await _unitOfWork.Repository<Country>().GetAllIncludeAsync(x => x.Cities);
             if (!String.IsNullOrEmpty(search))
             {
-                _repoCountry.GetAll().Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList().ForEach(b =>
-                {
-                    CountryListViewModel brand = new CountryListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                        TotalCities = _repoCity.GetAll().Where(x => x.CountryId == b.Id).ToList().Count
-                };
-
-                    model.Add(brand);
-                });
+                dbData = dbData.Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList();
                 ViewBag.SearchString = search;
             }
-            else
+
+            foreach (var b in dbData)
             {
-                _repoCountry.GetAll().ToList().ForEach(b =>
+                CountryListViewModel country = new CountryListViewModel
                 {
-                    CountryListViewModel brand = new CountryListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                    };
-                    brand.TotalCities = _repoCity.GetAll().Where(x=>x.CountryId==b.Id).ToList().Count;
-                    model.Add(brand);
-                });
+                    Id = b.Id,
+                    Name = b.Name,
+                    TotalCities = b.Cities.Count
+                };
+                model.Add(country);
             }
 
             return View(model);
         }
 
         [HttpGet]
-        public IActionResult AddEditCountry(int id)
+        public async Task<IActionResult> AddEditCountry(int id)
         {
             CountryViewModel model=new CountryViewModel();
             if (id>0)
             {
-                Country country = _repoCountry.GetById(id);
+                Country country = await _unitOfWork.Repository<Country>().GetByIdAsync(id);
                 model.Name = country.Name;
             }
 
@@ -88,7 +71,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpPost]
-        public IActionResult AddEditCountry(int id, CountryViewModel model)
+        public async Task<IActionResult> AddEditCountry(int id, CountryViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -97,12 +80,12 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 
             if (id>0)
             {
-                Country country = _repoCountry.GetById(id);
+                Country country = await _unitOfWork.Repository<Country>().GetByIdAsync(id);
                 if (country!=null)
                 {
                     country.Name = model.Name;
                     country.ModifiedDate=DateTime.Now;
-                    _repoCountry.Update(country);
+                    await _unitOfWork.Repository<Country>().UpdateAsync(country);
                 }
             }
             else
@@ -113,26 +96,26 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     ModifiedDate = DateTime.Now,
                     AddedDate = DateTime.Now
                 };
-                _repoCountry.Insert(country);
+                await _unitOfWork.Repository<Country>().InsertAsync(country);
             }
             return RedirectToAction(nameof(CountryIndex));
         }
 
         [HttpGet]
-        public IActionResult DeleteCountry(int id)
+        public async Task<IActionResult> DeleteCountry(int id)
         {
-            Country country = _repoCountry.GetById(id);
+            Country country = await _unitOfWork.Repository<Country>().GetByIdAsync(id);
             
             return PartialView("_DeleteCountry",country?.Name);
         }
 
         [HttpPost]
-        public IActionResult DeleteCountry(int id, IFormCollection form)
+        public async Task<IActionResult> DeleteCountry(int id, IFormCollection form)
         {
-            Country country = _repoCountry.GetById(id);
+            Country country = await _unitOfWork.Repository<Country>().GetByIdAsync(id);
             if (country!=null)
             {
-                _repoCountry.Delete(country);
+                await _unitOfWork.Repository<Country>().DeleteAsync(country);
             }
             return RedirectToAction(nameof(CountryIndex));
         }
@@ -146,61 +129,46 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         
 
         
-        public IActionResult CityIndex(string search = "")
+        public async Task<IActionResult> CityIndex(string search = "")
         {
             List<CityListViewModel> model = new List<CityListViewModel>();
-
+            var dbData = await _unitOfWork.Repository<City>().GetAllIncludeAsync(x => x.Country,l=>l.Locations);
             if (!String.IsNullOrEmpty(search))
             {
-                _repoCity.GetAll().Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList().ForEach(b =>
-                {
-                    CityListViewModel city = new CityListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                       CountryId = b.CountryId,
-                       CountryName = _repoCountry.GetAll().First(x=>x.Id==b.CountryId).Name,
-                        TotalLocation = b.Locations.Count
-                    };
-
-                    model.Add(city);
-                });
+                dbData = dbData.Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList();
                 ViewBag.SearchString = search;
             }
-            else
+
+            foreach (var b in dbData)
             {
-                _repoCity.GetAll().ToList().ForEach(b =>
+                CityListViewModel city = new CityListViewModel
                 {
-                    CityListViewModel city = new CityListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                        TotalLocation = b.Locations?.Count ?? 0,
-                        CountryId = b.CountryId,
-                        CountryName = _repoCountry.GetAll().First(x => x.Id == b.CountryId).Name,
+                    Id = b.Id,
+                    Name = b.Name,
+                    TotalLocation = b.Locations?.Count ?? 0,
+                    CountryId = b.CountryId,
+                    CountryName = b.Country.Name,
 
-                    };
-
-                    model.Add(city);
-                });
+                };
+                model.Add(city);
             }
 
             return View(model);
         }
 
         [HttpGet]
-        public IActionResult AddEditCity(int id)
+        public async Task<IActionResult> AddEditCity(int id)
         {
             CityViewModel model = new CityViewModel
             {
-                Countries = _repoCountry.GetAll().Select(c => new SelectListItem
+                Countries =  _unitOfWork.Repository<Country>().GetAll().Select(c => new SelectListItem
                 {
                     Text = c.Name,
                     Value = c.Id.ToString()
                 }).ToList()
             };
             if (id <= 0) return PartialView("_AddEditCity", model);
-            City city = _repoCity.GetById(id);
+            City city = await _unitOfWork.Repository<City>().GetByIdAsync(id);
             model.Name = city.Name;
             model.CountryId = city.CountryId;
 
@@ -208,7 +176,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpPost]
-        public IActionResult AddEditCity(int id, CityViewModel model)
+        public async Task<IActionResult> AddEditCity(int id, CityViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -217,13 +185,13 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 
             if (id > 0)
             {
-                City city = _repoCity.GetById(id);
+                City city = await _unitOfWork.Repository<City>().GetByIdAsync(id);
                 if (city != null)
                 {
                     city.Name = model.Name;
                     city.ModifiedDate = DateTime.Now;
                     city.CountryId = model.CountryId;
-                    _repoCity.Update(city);
+                    await _unitOfWork.Repository<City>().UpdateAsync(city);
                 }
             }
             else
@@ -235,26 +203,26 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     AddedDate = DateTime.Now,
                     CountryId = model.CountryId
                 };
-                _repoCity.Insert(city);
+                await _unitOfWork.Repository<City>().InsertAsync(city);
             }
             return RedirectToAction(nameof(CityIndex));
         }
 
         [HttpGet]
-        public IActionResult DeleteCity(int id)
+        public async Task<IActionResult> DeleteCity(int id)
         {
-            City city = _repoCity.GetById(id);
+            City city = await _unitOfWork.Repository<City>().GetByIdAsync(id);
 
             return PartialView("_DeleteCity", city?.Name);
         }
 
         [HttpPost]
-        public IActionResult DeleteCity(int id, IFormCollection form)
+        public async Task<IActionResult> DeleteCity(int id, IFormCollection form)
         {
-            City city = _repoCity.GetById(id);
+            City city = await _unitOfWork.Repository<City>().GetByIdAsync(id);
             if (city != null)
             {
-                _repoCity.Delete(city);
+                await _unitOfWork.Repository<City>().DeleteAsync(city);
             }
             return RedirectToAction(nameof(CityIndex));
         }
@@ -270,60 +238,36 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         
 
         
-        public IActionResult LocationIndex(string search = "")
+        public async Task<IActionResult> LocationIndex(string search = "")
         {
             List<LocationListViewModel> model = new List<LocationListViewModel>();
-            
 
+            var dbData = await _unitOfWork.Repository<Location>().GetAllIncludeAsync(c => c.City);
             if (!String.IsNullOrEmpty(search))
             {
-                _repoLocation.GetAll().Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList().ForEach(b =>
-                {
-                    LocationListViewModel location = new LocationListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                        Latitude = b.Latitude,
-                        Longditude = b.Longditude,
-                        Pram = b.Pram,
-                        Charge = b.Charge,
-                        CityId = b.CityId,
-                        CityName = _repoCity.GetAll().First(x => x.Id == b.CityId).Name,
-                    };
-                    
-                    model.Add(location);
-                });
+                dbData = dbData.Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList();
                 ViewBag.SearchString = search;
             }
-            else
-            {
-                _repoLocation.GetAll().ToList().ForEach(b =>
+            model=dbData.Select(b=> new LocationListViewModel
                 {
-                    LocationListViewModel location = new LocationListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                        Latitude = b.Latitude,
-                        Longditude = b.Longditude,
-                        Pram = b.Pram,
-                        Charge = b.Charge,
-                        CityId = b.CityId,
-                        CityName = _repoCity.GetAll().First(x=>x.Id==b.CityId).Name,
-                    };
-
-                    model.Add(location);
-                });
-            }
-
+                    Id = b.Id,
+                    Name = b.Name,
+                    Latitude = b.Latitude,
+                    Longditude = b.Longditude,
+                    Pram = b.Pram,
+                    Charge = b.Charge,
+                    CityId = b.CityId,
+                    CityName = b.City.Name,
+                }).ToList();
             return View(model);
         }
 
         [HttpGet]
-        public IActionResult AddEditLocation(int id)
+        public async Task<IActionResult> AddEditLocation(int id)
         {
             LocationViewModel model = new LocationViewModel
             {
-                Countries = _repoCountry.GetAll().Select(c => new SelectListItem
+                Countries = _unitOfWork.Repository<Country>().GetAll().Select(c => new SelectListItem
                 {
                     Text = c.Name,
                     Value = c.Id.ToString()
@@ -338,7 +282,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 
             if (id > 0)
             {
-                Location location = _repoLocation.GetById(id);
+                Location location = await _unitOfWork.Repository<Location>().GetByIdAsync(id);
                 model.Name = location.Name;
                 model.Charge = location.Charge;
                 model.Pram = location.Pram;
@@ -350,7 +294,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpPost]
-        public IActionResult AddEditLocation(int id, LocationViewModel model)
+        public async Task<IActionResult> AddEditLocation(int id, LocationViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -359,7 +303,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 
             if (id > 0)
             {
-                Location location = _repoLocation.GetById(id);
+                Location location = await _unitOfWork.Repository<Location>().GetByIdAsync(id);
                 if (location != null)
                 {
                     location.Name = model.Name;
@@ -369,7 +313,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     location.Longditude = model.Longditude;
                     location.Latitude = model.Latitude;
                     location.CityId = model.CityId;
-                    _repoLocation.Update(location);
+                    await _unitOfWork.Repository<Location>().UpdateAsync(location);
                 }
             }
             else
@@ -385,26 +329,26 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     Latitude = model.Latitude,
                     CityId = model.CityId
                  };
-                _repoLocation.Insert(location);
+                await _unitOfWork.Repository<Location>().InsertAsync(location);
             }
             return RedirectToAction(nameof(LocationIndex));
         }
 
         [HttpGet]
-        public IActionResult DeleteLocation(int id)
+        public async Task<IActionResult> DeleteLocation(int id)
         {
-            Location location = _repoLocation.GetById(id);
+            Location location = await _unitOfWork.Repository<Location>().GetByIdAsync(id);
 
             return PartialView("_DeleteLocation", location?.Name);
         }
 
         [HttpPost]
-        public IActionResult DeleteLocation(int id, IFormCollection form)
+        public async Task<IActionResult> DeleteLocation(int id, IFormCollection form)
         {
-            Location location = _repoLocation.GetById(id);
+            Location location = await _unitOfWork.Repository<Location>().GetByIdAsync(id);
             if (location != null)
             {
-                _repoLocation.Delete(location);
+                await _unitOfWork.Repository<Location>().DeleteAsync(location);
             }
             return RedirectToAction(nameof(CityIndex));
         }
@@ -417,7 +361,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
             
             if (id>0)
             {
-                var cities = _repoCity.GetAll().Where(x => x.CountryId == id).OrderBy(x => x.Name).ToList();
+                var cities =  _unitOfWork.Repository<City>().GetAll().Where(x => x.CountryId == id).OrderBy(x => x.Name).ToList();
                 foreach (var item in cities)
                 {
                     cityList.Add(new SelectListItem{Text = item.Name,Value = item.Id.ToString()});
@@ -431,7 +375,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         [HttpGet]
         public ActionResult GetCity(int id)
         {
-            var ddlCity = _repoCity.GetAll().Where(x => x.CountryId == id).OrderBy(x => x.Name).ToList();
+            var ddlCity = _unitOfWork.Repository<City>().GetAll().Where(x => x.CountryId == id).OrderBy(x => x.Name).ToList();
             List<SelectListItem> cities = new List<SelectListItem>
             {
                 new SelectListItem { Text = "--Select State--", Value = "0" }
@@ -448,7 +392,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         [HttpGet]
         public ActionResult GetLocation(int id)
         {
-            var ddlCity = _repoLocation.GetAll().Where(x => x.CityId == id).OrderBy(x => x.Name).ToList();
+            var ddlCity = _unitOfWork.Repository<Location>().GetAll().Where(x => x.CityId == id).OrderBy(x => x.Name).ToList();
             List<SelectListItem> cities = new List<SelectListItem>
             {
                 new SelectListItem { Text = "--Select State--", Value = "0" }

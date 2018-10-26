@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,15 +16,14 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 {
     public class ProductStockController : Controller
     {
-        private readonly IRepository<Product> _repoProduct;
-        private readonly IRepository<ProductStock> _repoProductStock;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ProductStockController(IRepository<Product> repoProduct, IRepository<ProductStock> repoProductStock)
+        public ProductStockController(
+            IUnitOfWork unitOfWork
+        )
         {
-            _repoProduct = repoProduct;
-            _repoProductStock = repoProductStock;
+            _unitOfWork = unitOfWork;
         }
-
         public IActionResult Index(string search="")
         {
             List < ProductStockListViewModel > model;
@@ -42,24 +42,24 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpGet]
-        public IActionResult AddEditProductStock(int id)
+        public async Task<IActionResult> AddEditProductStock(int id)
         {
             ProductStockViewModel model=new ProductStockViewModel();
             if (id>0)
             {
-                ProductStock productStock = _repoProductStock.GetById(id);
+                ProductStock productStock = await _unitOfWork.Repository<ProductStock>().GetSingleIncludeAsync(x=>x.Id==id,p=>p.Product);
                 model.Id = productStock.Id;
                 model.InQuantity = productStock.InQuantity;
                 model.OutQuantity = productStock.OutQuantity;
                 model.ProductId = productStock.ProductId;
                 model.Remarks = productStock.Remarks;
-                model.ProductName = _repoProduct.GetAll().First(x => x.Id == productStock.ProductId).Name;
+                model.ProductName = productStock.Product.Name;
             }
             return View(model);
         }
 
         [HttpPost]
-        public IActionResult AddEditProductStock(int id, ProductStockViewModel model)
+        public async Task<IActionResult> AddEditProductStock(int id, ProductStockViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -68,13 +68,13 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
             }
             if (id>0)
             {
-                ProductStock productStock = _repoProductStock.GetById(id);
+                ProductStock productStock = await _unitOfWork.Repository<ProductStock>().GetByIdAsync(id);
                 productStock.InQuantity = model.InQuantity;
                 productStock.OutQuantity = model.OutQuantity;
                 productStock.ModifiedDate=DateTime.Now;
                 productStock.ProductId = model.ProductId;
                 productStock.Remarks = model.Remarks;
-                _repoProductStock.Update(productStock);
+                await _unitOfWork.Repository<ProductStock>().UpdateAsync(productStock);
             }
             else
             {
@@ -87,7 +87,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     ProductId = model.ProductId,
                     Remarks = model.Remarks
                 };
-                _repoProductStock.Insert(productStock);
+                await _unitOfWork.Repository<ProductStock>().InsertAsync(productStock);
             }
             return RedirectToAction(nameof(AddEditProductStock));
         }
@@ -95,7 +95,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         public List<ProductStockListViewModel> GetProductsStock()
         {
             List<ProductStockListViewModel> productList=new List<ProductStockListViewModel>();
-            _repoProductStock.GetAll().ToList().ForEach(x =>
+             _unitOfWork.Repository<ProductStock>().GetAllInclude(x=>x.Product).ToList().ForEach(x =>
             {
                 ProductStockListViewModel productStock = new ProductStockListViewModel
                 {
@@ -104,7 +104,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     ModifiedDate = x.ModifiedDate,
                     AddedDate = x.AddedDate,
                     InQuantity = x.InQuantity,
-                    ProductName = _repoProduct.GetAll().First(p => p.Id == x.ProductId).Name,
+                    ProductName = x.Product.Name,
                     OutQuantity = x.OutQuantity,
                     Remarks = x.Remarks,
                     InStock = x.InQuantity - x.OutQuantity
@@ -119,19 +119,19 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         public IActionResult Delete(int id)
         {
 
-            ProductStock productStock = _repoProductStock.GetById(id);
-            string name = _repoProduct.GetAll().First(x => x.Id == productStock.ProductId).Name;
+            var productStock =  _unitOfWork.Repository<ProductStock>().GetSingleInclude(x=>x.Id==id,p=>p.Product);
+            string name = productStock.Product.Name;
 
             return PartialView("_DeleteProductStock", name);
         }
 
         [HttpPost]
-        public IActionResult Delete(int id, IFormCollection form)
+        public async Task<IActionResult> Delete(int id, IFormCollection form)
         {
-            ProductStock productStock = _repoProductStock.GetById(id);
+            ProductStock productStock = await _unitOfWork.Repository<ProductStock>().GetByIdAsync(id);
             if (productStock != null)
             {
-                _repoProductStock.Delete(productStock);
+                await _unitOfWork.Repository<ProductStock>().DeleteAsync(productStock);
                 
 
             }
@@ -143,7 +143,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         public JsonResult GetProducts(string term)
         {
             term = term.ToLower();
-            var productList = _repoProduct.GetAll().Where(x => x.Name.ToLower().StartsWith(term)).Select(x => new { label = x.Name, val = x.Id }).ToList();
+            var productList = _unitOfWork.Repository<Product>().GetAll().Where(x => x.Name.ToLower().StartsWith(term)).Select(x => new { label = x.Name, val = x.Id }).ToList();
 
 
             return Json(productList);

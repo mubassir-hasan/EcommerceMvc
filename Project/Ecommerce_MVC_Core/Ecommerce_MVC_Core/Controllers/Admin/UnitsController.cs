@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Ecommerce_MVC_Core.Data;
 using Ecommerce_MVC_Core.Models.Admin;
+using Ecommerce_MVC_Core.Repository;
 using Ecommerce_MVC_Core.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,52 +13,39 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 {
     public class UnitsController : Controller
     {
-       
 
-        private IRepository<Unit> _repoUnit { get; set; }
-        private IRepository<Product> _repoProduct { get; set; }
-        
-        public UnitsController(IRepository<Unit> repoUnit, IRepository<Product> repoProduct)
+
+        private readonly IUnitOfWork _unitOfWork;
+
+        public UnitsController(
+            IUnitOfWork unitOfWork
+        )
         {
-            _repoProduct = repoProduct;
-            _repoUnit = repoUnit;
+            _unitOfWork = unitOfWork;
         }
 
         public IActionResult Index(string search="")
         {
             List<UnitListViewModel> model = new List<UnitListViewModel>();
-
+            var dbData = _unitOfWork.Repository<Unit>().GetAllInclude(x => x.Products);
             if (!String.IsNullOrEmpty(search))
             {
-                _repoUnit.GetAll().Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList().ForEach(b =>
-                {
-                    UnitListViewModel unit = new UnitListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                        Description = b.Description,
-                        TotalProducts = _repoProduct.GetAll().Count(x => x.UnitId == b.Id)
-                    };
-
-                    ViewBag.SearchString = search;
-                    model.Add(unit);
-                });
+                dbData=dbData.Where(x => x.Name.ToLower().Contains(search.ToLower())).ToList();
 
             }
-            else
-            {
-                _repoUnit.GetAll().ToList().ForEach(b =>
-                {
-                    UnitListViewModel unit = new UnitListViewModel
-                    {
-                        Id = b.Id,
-                        Name = b.Name,
-                        Description = b.Description,
-                        TotalProducts = _repoProduct.GetAll().Count(x => x.UnitId == b.Id)
-                    };
 
-                    model.Add(unit);
-                });
+            foreach (var b in dbData)
+            {
+                
+                UnitListViewModel unit = new UnitListViewModel
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    Description = b.Description,
+                    TotalProducts = b.Products.Count
+                };
+
+                model.Add(unit);
             }
 
 
@@ -65,12 +53,12 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
         }
 
         [HttpGet]
-        public IActionResult AddEditUnit(int id)
+        public async Task<IActionResult> AddEditUnit(int id)
         {
             UnitViewModel model = new UnitViewModel();
             if (id > 0)
             {
-                Unit payment = _repoUnit.GetById(id);
+                Unit payment = await _unitOfWork.Repository<Unit>().GetByIdAsync(id);
                 model.Name = payment.Name;
                 model.Description = payment.Description;
             }
@@ -80,7 +68,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 
 
         [HttpPost]
-        public IActionResult AddEditUnit(int id, UnitViewModel model)
+        public async Task<IActionResult> AddEditUnit(int id, UnitViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -89,13 +77,13 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
 
             if (id > 0)
             {
-                Unit unit = _repoUnit.GetById(id);
+                Unit unit = await _unitOfWork.Repository<Unit>().GetByIdAsync(id);
                 if (unit != null)
                 {
                     unit.Name = model.Name;
                     unit.ModifiedDate = DateTime.Now;
                     unit.Description = model.Description;
-                    _repoUnit.Update(unit);
+                    await _unitOfWork.Repository<Unit>().UpdateAsync(unit);
                 }
             }
             else
@@ -107,26 +95,26 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     AddedDate = DateTime.Now,
                     Description = model.Description,
                 };
-                _repoUnit.Insert(unit);
+                await _unitOfWork.Repository<Unit>().InsertAsync(unit);
             }
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
-        public IActionResult DeleteUnit(int id)
+        public async Task<IActionResult> DeleteUnit(int id)
         {
-            Unit unit = _repoUnit.GetById(id);
+            Unit unit = await _unitOfWork.Repository<Unit>().GetByIdAsync(id);
 
             return PartialView("_DeleteUnit", unit?.Name);
         }
 
         [HttpPost]
-        public IActionResult DeleteUnit(int id, IFormCollection form)
+        public async Task<IActionResult> DeleteUnit(int id, IFormCollection form)
         {
-            Unit unit = _repoUnit.GetById(id);
+            Unit unit = await _unitOfWork.Repository<Unit>().GetByIdAsync(id);
             if (unit != null)
             {
-                _repoUnit.Delete(unit);
+                await _unitOfWork.Repository<Unit>().DeleteAsync(unit);
             }
             return RedirectToAction(nameof(Index));
         }
