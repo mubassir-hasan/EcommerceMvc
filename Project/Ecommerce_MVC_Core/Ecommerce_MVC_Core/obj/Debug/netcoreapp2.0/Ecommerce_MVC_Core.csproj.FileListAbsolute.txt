@@ -253,3 +253,4 @@ G:\Contiribution\Ecommerce\EcommerceMvc\Project\Ecommerce_MVC_Core\Ecommerce_MVC
 G:\Contiribution\Ecommerce\EcommerceMvc\Project\Ecommerce_MVC_Core\Ecommerce_MVC_Core\obj\Debug\netcoreapp2.0\Ecommerce_MVC_Core.AssemblyInfo.cs
 G:\Contiribution\Ecommerce\EcommerceMvc\Project\Ecommerce_MVC_Core\Ecommerce_MVC_Core\obj\Debug\netcoreapp2.0\Ecommerce_MVC_Core.dll
 G:\Contiribution\Ecommerce\EcommerceMvc\Project\Ecommerce_MVC_Core\Ecommerce_MVC_Core\obj\Debug\netcoreapp2.0\Ecommerce_MVC_Core.pdb
+G:\Contiribution\Ecommerce\EcommerceMvc\Project\Ecommerce_MVC_Core\Ecommerce_MVC_Core\obj\Debug\netcoreapp2.0\Ecommerce_MVC_Core.csprojAssemblyReference.cache
