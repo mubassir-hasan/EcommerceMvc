@@ -20,9 +20,9 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public string Address { get; set; }
         public int CityId { get; set; }
 
-        public virtual City City { get; set; }
-        public virtual ICollection<ProductComments> ProductCommentses { get; set; }
-        public virtual ICollection<UserLoginHistory> UserLoginHistories { get; set; }
+        public  City City { get; set; }
+        public  ICollection<ProductComments> ProductCommentses { get; set; }
+        public  ICollection<UserLoginHistory> UserLoginHistories { get; set; }
        }
 
     public class UsersMap

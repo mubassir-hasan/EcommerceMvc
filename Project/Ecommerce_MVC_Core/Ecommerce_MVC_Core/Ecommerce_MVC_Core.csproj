@@ -14,6 +14,8 @@
   <ItemGroup>
     <Compile Remove="Data\IRepository.cs" />
     <Compile Remove="Data\Repository.cs" />
+    <Compile Remove="Migrations\20190409193143_MigTest.cs" />
+    <Compile Remove="Migrations\20190409193143_MigTest.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

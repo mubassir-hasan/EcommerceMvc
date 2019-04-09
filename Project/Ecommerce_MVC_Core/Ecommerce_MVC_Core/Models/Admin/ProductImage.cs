@@ -13,7 +13,7 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public string ImagePath { get; set; }
         public string Title { get; set; }
 
-        public virtual Product Product { get; set; }
+        public  Product Product { get; set; }
     }
 
     public class ProductImageMap

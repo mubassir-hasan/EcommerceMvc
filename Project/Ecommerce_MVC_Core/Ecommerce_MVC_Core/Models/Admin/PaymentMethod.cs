@@ -13,7 +13,7 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public string Description { get; set; }
         public string Processor { get; set; }
 
-        public virtual ICollection<Orders> Orderses { get; set; }
+        public  ICollection<Orders> Orderses { get; set; }
         
     }
 

@@ -19,25 +19,25 @@ namespace Ecommerce_MVC_Core.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) :base(options){
             
         }
-        public virtual DbSet<Brand> Brands { get; set; }
-        public virtual DbSet<Category> Categories { get; set; }
-        public virtual DbSet<Country> Countries { get; set; }
-        public virtual DbSet<City> Cities { get; set; }
-        public virtual DbSet<Location> Location { get; set; }
+        public  DbSet<Brand> Brands { get; set; }
+        public  DbSet<Category> Categories { get; set; }
+        public  DbSet<Country> Countries { get; set; }
+        public  DbSet<City> Cities { get; set; }
+        public  DbSet<Location> Location { get; set; }
         //public virtual DbSet<Users> Userses { get; set; }
-        public virtual DbSet<PaymentMethod> PaymentMethod { get; set; }
-        public virtual DbSet<Unit> Unit { get; set; }
-        public virtual DbSet<Product> Product { get; set; }
-        public virtual DbSet<Status> Status { get; set; }
-        public virtual DbSet<ProductComments> ProductComments { get; set; }
-        public virtual DbSet<ProductImage> ProductImage { get; set; }
+        public  DbSet<PaymentMethod> PaymentMethod { get; set; }
+        public  DbSet<Unit> Unit { get; set; }
+        public  DbSet<Product> Product { get; set; }
+        public  DbSet<Status> Status { get; set; }
+        public  DbSet<ProductComments> ProductComments { get; set; }
+        public  DbSet<ProductImage> ProductImage { get; set; }
         //public virtual DbSet<ProductLikes> ProductLikes { get; set; }
-        public virtual DbSet<ProductManual> ProductManual { get; set; }
-        public virtual DbSet<ProductStock> ProductStock { get; set; }
+        public  DbSet<ProductManual> ProductManual { get; set; }
+        public  DbSet<ProductStock> ProductStock { get; set; }
 
-        public virtual DbSet<Orders> Order { get; set; }
-        public virtual DbSet<OrderDetails> OrderDetails { get; set; }
-        public virtual DbSet<OrderStatus> OrderStatus { get; set; }
+        public  DbSet<Orders> Order { get; set; }
+        public  DbSet<OrderDetails> OrderDetails { get; set; }
+        public  DbSet<OrderStatus> OrderStatus { get; set; }
 
         //ModelBuilder
         protected override void OnModelCreating(ModelBuilder modelBuilder)

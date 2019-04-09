@@ -15,7 +15,7 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public string UserId { get; set; }
         public string IpAddress { get; set; }
 
-        public virtual ApplicationUsers Users { get; set; }
+        public  ApplicationUsers Users { get; set; }
     }
     /*
     public class UserLoginHistoryMap

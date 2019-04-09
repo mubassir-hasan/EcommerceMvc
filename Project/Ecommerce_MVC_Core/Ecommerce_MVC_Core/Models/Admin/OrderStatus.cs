@@ -15,9 +15,9 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public int StatusId { get; set; }
         public string UserId { get; set; }
 
-        public virtual Orders Orders { get; set; }
-        public virtual Status Status { get; set; }
-        public virtual ApplicationUsers Users { get; set; }
+        public  Orders Orders { get; set; }
+        public  Status Status { get; set; }
+        public  ApplicationUsers Users { get; set; }
     }
 
     public class OrderStatusMap

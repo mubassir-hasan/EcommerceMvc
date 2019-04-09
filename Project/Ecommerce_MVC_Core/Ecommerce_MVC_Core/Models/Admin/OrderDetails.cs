@@ -20,8 +20,8 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public double Rate { get; set; }
         public string Remarks { get; set; }
 
-        public virtual Orders Orders { get; set; }
-        public virtual Product Product { get; set; }
+        public  Orders Orders { get; set; }
+        public  Product Product { get; set; }
     }
 
     public class OrderDetailsMap

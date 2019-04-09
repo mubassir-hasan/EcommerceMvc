@@ -95,7 +95,7 @@ namespace Ecommerce_MVC_Core
             app.UseAuthentication();
             app.UseSession();
             //First Time User Seed
-            //IdentityDbInitializer.SeedData(userManager,roleManager);
+            IdentityDbInitializer.SeedData(userManager,roleManager);
 
             
 

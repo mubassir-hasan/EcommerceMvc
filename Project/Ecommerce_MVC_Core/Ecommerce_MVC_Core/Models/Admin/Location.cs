@@ -16,8 +16,8 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public double Charge { get; set; }
         public int CityId { get; set; }
 
-        public virtual City City { get; set; }
-        public virtual ICollection<Orders> Orderses { get; set; }
+        public  City City { get; set; }
+        public  ICollection<Orders> Orderses { get; set; }
     }
 
     public class LocationMap

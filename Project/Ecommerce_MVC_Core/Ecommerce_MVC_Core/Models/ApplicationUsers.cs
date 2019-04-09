@@ -20,10 +20,10 @@ namespace Ecommerce_MVC_Core.Models
         public string Refference { get; set; }
 
         [ForeignKey("CityId")]
-        public virtual City City { get; set; }
-        public virtual ICollection<ProductComments> ProductCommentses { get; set; }
-        public virtual ICollection<Orders> Orderses { get; set; }
-        public virtual ICollection<OrderStatus> OrderStatuses { get; set; }
+        public  City City { get; set; }
+        public  ICollection<ProductComments> ProductCommentses { get; set; }
+        public  ICollection<Orders> Orderses { get; set; }
+        public  ICollection<OrderStatus> OrderStatuses { get; set; }
         //public virtual ICollection<UserLoginHistory> UserLoginHistories { get; set; }
        // public virtual ICollection<ProductLikes> ProductLikeses { get; set; }
     }

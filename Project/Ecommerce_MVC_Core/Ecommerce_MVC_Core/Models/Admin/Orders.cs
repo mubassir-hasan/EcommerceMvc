@@ -18,11 +18,11 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public string DeliveryAddress { get; set; }
         public int LocationId { get; set; }
 
-        public virtual ApplicationUsers Users { get; set; }
-        public virtual PaymentMethod PaymentMethod { get; set; }
-        public virtual Location Location { get; set; }
-        public virtual OrderDetails OrderDetails { get; set; }
-        public virtual OrderStatus OrderStatus { get; set; }
+        public  ApplicationUsers Users { get; set; }
+        public  PaymentMethod PaymentMethod { get; set; }
+        public  Location Location { get; set; }
+        public  OrderDetails OrderDetails { get; set; }
+        public  OrderStatus OrderStatus { get; set; }
         
     }
 

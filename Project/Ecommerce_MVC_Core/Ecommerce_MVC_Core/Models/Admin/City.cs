@@ -12,9 +12,9 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public string Name { get; set; }
         public int CountryId { get; set; }
 
-        public virtual Country Country { get; set; }
-        public virtual ICollection<Location> Locations { get; set; }
-        public virtual ICollection<ApplicationUsers> Users { get; set; }
+        public  Country Country { get; set; }
+        public  ICollection<Location> Locations { get; set; }
+        public  ICollection<ApplicationUsers> Users { get; set; }
     }
 
     public class CityMap

@@ -14,7 +14,7 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public int OutQuantity { get; set; }
         public string Remarks { get; set; }
         
-        public virtual Product Product { get; set; }
+        public  Product Product { get; set; }
     }
 
     public class ProductStockMap
