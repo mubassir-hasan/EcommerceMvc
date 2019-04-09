@@ -19,14 +19,14 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public double Price { get; set; }
         public int Discount { get; set; }
 
-        public virtual Category Category { get; set; }
-        public virtual Brand Brand { get; set; }
-        public virtual Unit Unit { get; set; }
-        public virtual ProductManual ProductManual { get; set; }
-        public virtual ICollection<ProductComments> ProductCommentses { get; set; }
-        public virtual ICollection<ProductImage> ProductImages { get; set; }
-        public virtual ICollection<ProductStock> ProductStocks { get; set; }
-        public virtual OrderDetails OrderDetails { get; set; }
+        public  Category Category { get; set; }
+        public  Brand Brand { get; set; }
+        public  Unit Unit { get; set; }
+        public  ProductManual ProductManual { get; set; }
+        public  ICollection<ProductComments> ProductCommentses { get; set; }
+        public  ICollection<ProductImage> ProductImages { get; set; }
+        public  ICollection<ProductStock> ProductStocks { get; set; }
+        public  ICollection<OrderDetails> OrderDetails { get; set; }
     }
 
     public class ProductMap

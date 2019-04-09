@@ -104,7 +104,6 @@ namespace Ecommerce_MVC_Core
 
                 app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
                 app.UseDeveloperExceptionPage();
-                app.UseBrowserLink();
             }
             else
             {

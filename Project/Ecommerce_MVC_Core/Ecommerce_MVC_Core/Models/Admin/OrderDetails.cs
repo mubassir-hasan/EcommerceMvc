@@ -32,8 +32,8 @@ namespace Ecommerce_MVC_Core.Models.Admin
             entityTypeBuilder.Property(x => x.Quantity);
             entityTypeBuilder.Property(x => x.Rate);
             entityTypeBuilder.Property(x => x.Remarks).HasMaxLength(200);
-            entityTypeBuilder.HasOne(x => x.Product).WithOne(x => x.OrderDetails)
-                .HasForeignKey<OrderDetails>(x => x.ProductId);
+            entityTypeBuilder.HasOne(x => x.Product).WithMany(x => x.OrderDetails)
+                .HasForeignKey(x => x.ProductId);
             entityTypeBuilder.HasOne(x => x.Orders).WithOne(x => x.OrderDetails)
                 .HasForeignKey<OrderDetails>(x => x.OrderId);
         }
