@@ -11,9 +11,9 @@ namespace Ecommerce_MVC_Core.ViewModel.Public
         
         public List<CategoryViewModel> Categories { get; set; }
         public List<ProductListViewModel> ProductList { get; set; }
-        public List<ProductListViewModel> Electronics { get; set; }
-        public List<ProductListViewModel> ClothList { get; set; }
-        public List<ProductListViewModel> MedicineList { get; set; }
+        public List<ProductListViewModel> FirstTab { get; set; }
+        public List<ProductListViewModel> SecondTab { get; set; }
+        public List<ProductListViewModel> ThirdTab { get; set; }
         public List<BrandListViewModel> BrandList { get; set; }
     }
 }

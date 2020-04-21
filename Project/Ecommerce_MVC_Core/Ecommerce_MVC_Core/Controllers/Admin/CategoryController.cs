@@ -42,6 +42,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                 {
                     Id = c.Id,
                     Name = c.Name,
+                    Order=c.Order,
                     Description = c.Description,
                     CategoryId = c.CategoryId,
                     CategoryParentName = c.Categoris?.Name,
@@ -63,6 +64,8 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     Value = c.Id.ToString()
                 }).OrderBy(x => x.Text).ToList()
             };
+            var totalCategory =await _unitOfWork.Repository<Category>().CountAsync();
+            model.Order = totalCategory + 1;
             if (id>0)
             {
                 Category category= await _unitOfWork.Repository<Category>().GetByIdAsync(id);
@@ -71,6 +74,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     model.Name = category.Name;
                     model.CategoryId = category.CategoryId;
                     model.Description = category.Description;
+                    model.Order = category.Order;
                 }
 
             }
@@ -93,17 +97,18 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     category.Name = model.Name;
                     category.Description = model.Name;
                     category.CategoryId = model.CategoryId;
-                    
+                    category.Order = model.Order;
                     category.ModifiedDate=DateTime.Now;
                     await _unitOfWork.Repository<Category>().UpdateAsync(category);
                 }
             }
             else
             {
-                Category category=new Category
+                Category category = new Category
                 {
                     Name = model.Name,
                     Description = model.Description,
+                    Order = model.Order,
                     CategoryId = model.CategoryId,
                     AddedDate = DateTime.Now,
                     ModifiedDate = DateTime.Now

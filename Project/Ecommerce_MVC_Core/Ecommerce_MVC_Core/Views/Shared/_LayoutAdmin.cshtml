@@ -72,13 +72,13 @@
                         </li>
 
 
-                        <li class="treeview">
+                        @*<li class="treeview">
                             <a href="charts.html">
                                 <i class="fa fa-pie-chart"></i>
                                 <span>Charts</span>
                                 <span class="label label-primary pull-right">new</span>
                             </a>
-                        </li>
+                        </li>*@
                         <li class="treeview">
                         <li class="treeview">
                             <a href="#">
@@ -396,7 +396,14 @@
     <script src="~/js/site.min.js" asp-append-version="true"></script>
     <script src="~/js/ModalPopup.js" type="text/javascript" asp-append-version="true"></script>
 </environment>
+    <script>
+        $(document).ready(function () {
+            var path = window.location.pathname;
+            var menu = $("ul.treeview-menu>li").find('a[href*=' + path + ']').text()
 
+            console.log(menu.text())
+        })
+    </script>
 @RenderSection("Scripts", required: false)
 </body>
 </html>

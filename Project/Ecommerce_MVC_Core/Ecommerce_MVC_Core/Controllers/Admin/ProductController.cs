@@ -158,7 +158,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     ModifiedDate = DateTime.Now
                 };
                 await _unitOfWork.Repository<Product>().InsertAsync(product);
-                if (model.Images.Count>0)
+                if (model.Images.Count()>0)
                 {
                     await UploadProductImages(model.Images, product.Name, product.Id);
                 }

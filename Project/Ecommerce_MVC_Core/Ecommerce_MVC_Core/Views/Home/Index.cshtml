@@ -84,14 +84,18 @@
         <h3 class="wthree_text_info">New <span>Arrivals</span></h3>
         <div id="horizontalTab">
             <ul class="resp-tabs-list">
-                <li> Electronics</li>
+                @foreach (var item in (List<string>)ViewBag.CategoryNameList)
+                {
+                    <li>@item</li>
+                }
+                @*<li> Electronics</li>
                 <li>Garments</li>
-                <li> Medicine</li>
+                <li> Medicine</li>*@
             </ul>
             <div class="resp-tabs-container">
                 <!--/tab_one-->
                 <div class="tab1">
-                    @foreach (var item in Model.Electronics)
+                    @foreach (var item in Model.FirstTab)
                     {
                         <div class="col-md-3 product-men">
                             <div class="men-pro-item simpleCart_shelfItem">
@@ -127,7 +131,7 @@
                 <!--//tab_one-->
                 <!--/tab_two-->
                 <div class="tab2">
-                    @foreach (var item in Model.ClothList)
+                    @foreach (var item in Model.SecondTab)
                     {
                         <div class="col-md-3 product-men">
                             <div class="men-pro-item simpleCart_shelfItem">
@@ -163,7 +167,7 @@
                 <!--//tab_two-->
                 <div class="tab3">
 
-                    @foreach (var item in Model.MedicineList)
+                    @foreach (var item in Model.ThirdTab)
                     {
                         <div class="col-md-3 product-men">
                             <div class="men-pro-item simpleCart_shelfItem">
@@ -205,7 +209,7 @@
 <div class="container">
     <h3 class="wthree_text_info">Hard to find your choice <span>Down Here</span></h3>
     @{
-        @Html.Partial("_SubCategory", Model.Categories)
+        @await Html.PartialAsync("_SubCategory", Model.Categories)
 
     }
 

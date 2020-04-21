@@ -11,6 +11,13 @@ namespace Ecommerce_MVC_Core.ViewModel
 {
     public class ProductViewModel
     {
+        public ProductViewModel()
+        {
+            Images = new List<IFormFile>();
+            CategoryList = new List<SelectListItem>();
+            BrandList = new List<SelectListItem>();
+            UnitList = new List<SelectListItem>();
+        }
         public int Id { get; set; }
         [Required]
         public string Name { get; set; }

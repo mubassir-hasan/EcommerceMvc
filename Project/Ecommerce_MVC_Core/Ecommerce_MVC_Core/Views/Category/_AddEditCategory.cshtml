@@ -14,7 +14,13 @@
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
         </div>
-
+        <div class="form-group">
+            <label asp-for="Order" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Order" class="form-control"  />
+                <span asp-validation-for="Order" class="text-danger"></span>
+            </div>
+        </div>
         <div class="form-group">
             <label asp-for="Description" class="col-md-3 control-label"></label>
             <div class="col-md-8">
@@ -27,7 +33,7 @@
             <label asp-for="CategoryId" class="col-md-3 control-label"></label>
             <div class="col-md-8">
                 <select asp-for="CategoryId" asp-items="@Model.Categories" class="form-control">
-                    <option value="" >--Select--</option>
+                    <option value="">--Select--</option>
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>

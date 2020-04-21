@@ -13,6 +13,7 @@ namespace Ecommerce_MVC_Core.ViewModel
         [Required]
         public string Name { get; set; }
         public string Description { get; set; }
+        public int Order { get; set; }
 
         [Display(Name = "Category")]
         public int? CategoryId { get; set; }
@@ -25,7 +26,7 @@ namespace Ecommerce_MVC_Core.ViewModel
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-
+        public int Order { get; set; }
         
         public int? CategoryId { get; set; }
         [Display(Name = "Category")]

@@ -41,27 +41,29 @@ namespace Ecommerce_MVC_Core.Controllers
            
             homePage.ProductList= new List<ProductListViewModel>();
 
-            var ctgQuery = _unitOfWork.Repository<Category>().Query();
-
-            var cloth = ctgQuery.FirstOrDefault(x => x.Name.ToLower() == "Cloth".ToLower() ||
-                                                          x.Name.ToLower() == "garments".ToLower());
-            var elec = ctgQuery.FirstOrDefault(x => x.Name.ToLower() == "Electronics".ToLower());
-            var medici = ctgQuery.FirstOrDefault(x => x.Name.ToLower() == "Medicine".ToLower());
-            homePage.ClothList = new List<ProductListViewModel>();
-            homePage.Electronics = new List<ProductListViewModel>();
-            homePage.MedicineList = new List<ProductListViewModel>();
-            if (cloth!=null)
+            var ctgList = _unitOfWork.Repository<Category>().Query().OrderBy(x=>x.Order).Take(3).ToList();
+            ViewBag.CategoryNameList = ctgList!=null? ctgList.Select(x => x.Name).ToList():new List<string>();
+            homePage.SecondTab = new List<ProductListViewModel>();
+            homePage.FirstTab = new List<ProductListViewModel>();
+            homePage.ThirdTab = new List<ProductListViewModel>();
+            var counter = 0;
+            foreach (var item in ctgList)
             {
-                homePage.ClothList = GetAllProductList(ctgid:cloth.Id, take:8);
+                if (counter ==0)
+                {
+                    homePage.FirstTab = GetAllProductList(ctgid: item.Id, take: 8);
+                }
+                if (counter == 1)
+                {
+                    homePage.SecondTab = GetAllProductList(ctgid: item.Id, take: 8);
+                }
+                if (counter == 2)
+                {
+                    homePage.ThirdTab = GetAllProductList(ctgid: item.Id, take: 8);
+                }
+                counter++;
             }
-            if (elec != null)
-            {
-                homePage.ClothList = GetAllProductList(ctgid: elec.Id, take: 8);
-            }
-            if (medici != null)
-            {
-                homePage.ClothList = GetAllProductList(ctgid: medici.Id, take: 8);
-            }
+            
             homePage.BrandList = GetAllBrand();
             
             return View(homePage);
@@ -89,7 +91,7 @@ namespace Ecommerce_MVC_Core.Controllers
         public List<CategoryViewModel> GetMainCategory()
         {
             List<CategoryViewModel> categoryList = new List<CategoryViewModel>();
-            _unitOfWork.Repository<Category>().GetAll().Where(x => x.CategoryId == null).ToList().ForEach(c =>
+            _unitOfWork.Repository<Category>().GetAll().Where(x => x.CategoryId == null).OrderBy(x=>x.Order).ToList().ForEach(c =>
             {
                 CategoryViewModel ctg = new CategoryViewModel
                 {

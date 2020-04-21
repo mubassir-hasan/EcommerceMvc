@@ -4,14 +4,16 @@ using Ecommerce_MVC_Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Ecommerce_MVC_Core.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200420171150_mig_productcomments")]
+    partial class mig_productcomments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,8 +55,6 @@ namespace Ecommerce_MVC_Core.Migrations
                     b.Property<DateTime>("ModifiedDate");
 
                     b.Property<string>("Name");
-
-                    b.Property<int>("Order");
 
                     b.HasKey("Id");
 
@@ -212,7 +212,7 @@ namespace Ecommerce_MVC_Core.Migrations
 
                     b.Property<DateTime>("AddedDate")
                         .ValueGeneratedOnAdd()
-                        .HasDefaultValue(new DateTime(2020, 4, 21, 0, 3, 21, 411, DateTimeKind.Local));
+                        .HasDefaultValue(new DateTime(2020, 4, 20, 23, 11, 50, 140, DateTimeKind.Local));
 
                     b.Property<DateTime>("ModifiedDate");
 
@@ -360,7 +360,7 @@ namespace Ecommerce_MVC_Core.Migrations
 
                     b.Property<DateTime>("AddedDate")
                         .ValueGeneratedOnAdd()
-                        .HasDefaultValue(new DateTime(2020, 4, 21, 0, 3, 21, 364, DateTimeKind.Local));
+                        .HasDefaultValue(new DateTime(2020, 4, 20, 23, 11, 50, 118, DateTimeKind.Local));
 
                     b.Property<string>("UsersId");
 
