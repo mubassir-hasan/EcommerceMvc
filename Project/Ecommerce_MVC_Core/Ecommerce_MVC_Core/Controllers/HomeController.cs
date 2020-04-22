@@ -244,7 +244,7 @@ namespace Ecommerce_MVC_Core.Controllers
                     product.ImagePath = productImage.ImagePath;
                     if (productImageList.Count > 1)
                     {
-                        product.SecondImagePath = productImageList.Skip(1).First().ImagePath;
+                        product.SecondImagePath = productImageList.Skip(1).FirstOrDefault()?.ImagePath;
                     }
                     else
                     {

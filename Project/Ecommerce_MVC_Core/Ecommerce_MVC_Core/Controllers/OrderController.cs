@@ -77,7 +77,7 @@ namespace Ecommerce_MVC_Core.Controllers
                         orderDetails.Price = product.Price;
                         orderDetails.ImagePath =product.ProductImages.FirstOrDefault(x => x.ProductId == c.ProductId)
                             ?.ImagePath;
-                        var pStock = product.ProductStocks.First(x => x.ProductId == c.ProductId);
+                        var pStock = product.ProductStocks.FirstOrDefault(x => x.ProductId == c.ProductId);
                         if (pStock!=null)
                         {
                             orderDetails.Stock = (pStock.InQuantity - pStock.OutQuantity) < 1
@@ -262,7 +262,7 @@ namespace Ecommerce_MVC_Core.Controllers
                         orderDetails.Price = product.Price;
                         orderDetails.ImagePath = product.ProductImages.FirstOrDefault(x => x.ProductId == c.ProductId)
                             ?.ImagePath;
-                        var pStock = product.ProductStocks.First(x => x.ProductId == c.ProductId);
+                        var pStock = product.ProductStocks.FirstOrDefault(x => x.ProductId == c.ProductId);
                         if (pStock != null)
                         {
                             orderDetails.Stock = (pStock.InQuantity - pStock.OutQuantity) < 1
