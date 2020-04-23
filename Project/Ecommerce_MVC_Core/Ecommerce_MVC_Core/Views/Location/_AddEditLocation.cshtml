@@ -72,37 +72,4 @@
     @await Html.PartialAsync("_ModalFooter", new ModalFooter { })
 </form>
 
-<script>
-    $.validator.unobtrusive.parse("#frm");
-</script>
-
-<script type="text/javascript">
-    
-    $(document).ready(function() {
-        
-        $("#CountryId").change(function() {
-            $("#CityId").empty();
-            $.ajax({
-                type: 'GET',
-                url: '@Url.Action("GetCity", "Location")',
-                dataType: 'json',
-                data: { id: $("#CountryId").val() },
-                
-                success: function(states) {
-
-                    $.each(states,
-                        function(i, items) {
-                            console.log(items);
-                            $("#CityId").append('<option value="' + items.value + '">' + items.text + '</option>');
-
-                        });
-                },
-                error: function(ex) {
-                    alert('Failed. ' + ex);
-                }
-            });
-            return false;
-        });
-    });
-</script>
 
