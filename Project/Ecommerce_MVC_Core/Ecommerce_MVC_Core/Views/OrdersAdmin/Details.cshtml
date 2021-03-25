@@ -1,0 +1,86 @@
+﻿@model Ecommerce_MVC_Core.ViewModel.OrderDetailsAdminVM
+<div class="row">
+    <div class="col-md-6 col-sm-12">
+        <h4>Bill Information</h4>
+        <hr />
+        Total: @Model.OrderProductLists.Sum(x => x.FinalPrice) <br />
+        Payment Method: @Model.PaymentMethod
+
+    </div>
+    <div class="col-md-6 col-sm-12">
+        <div class="table-responsive ">
+            @Model.CustomerName
+            <table class="table table-striped">
+                <tr>
+                    <td>@Model.CustomerEmail</td>
+                </tr>
+                <tr>
+                    <td>@Model.DeliveryAddress</td>
+                </tr>
+                <tr>
+                    <td>@Model.LocationName, @Model.City, @Model.Country</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th class="text-center">Price</th>
+                        <th class="text-center">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        
+                        foreach (var item in Model.OrderProductLists)
+                        {
+
+
+                            <tr>
+                                <td class="col-sm-8 col-md-6">
+                                    <div class="media">
+                                        <a class="thumbnail pull-left" href="#"> <img class="media-object" src="~/uploads/ProductImages/@item.ImagePath" style="width: 72px; height: 72px;"> </a>
+                                        <div class="media-body" style="padding-left: 10px;">
+                                            <h4 class="media-heading"><a asp-controller="Home" asp-action="ProductDetails" asp-route-product="@item.ProductId">@item.ProductName</a></h4>
+                                            <h5 class="media-heading"> by <a href="#">@item.BrandName</a></h5>
+
+                                            
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="col-sm-1 col-md-1" style="text-align: center">
+                                    @item.Quantity
+                                </td>
+                                <td class="col-sm-1 col-md-1 text-center"><strong class="price">@item.FinalPrice</strong></td>
+                                <td class="col-sm-1 col-md-1 text-center"><strong class="total">@item.FinalPrice</strong></td>
+                               
+                            </tr>
+
+
+                        }
+                    }
+
+
+                    <tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td class="text-center">Total</td>
+                        <td class="text-center"  >
+                            @Model.OrderProductLists.Sum(x => x.FinalPrice)
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

@@ -59,6 +59,9 @@
                                 @item.Total
                             </td>
                             <td>
+                                <a  asp-action="details" asp-route-id="@item.Id"  class="btn btn-info">
+                                    <i class="glyphicon glyphicon-file"></i>  Details
+                                </a>
                                 <a id="deleteUserModal" data-toggle="modal" asp-action="DeleteProduct" asp-route-id="@item.Id" data-target="#modal-popUP" class="btn btn-danger">
                                     <i class="glyphicon glyphicon-trash"></i>  Delete
                                 </a>

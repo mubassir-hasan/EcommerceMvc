@@ -21,7 +21,7 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public  ApplicationUsers Users { get; set; }
         public  PaymentMethod PaymentMethod { get; set; }
         public  Location Location { get; set; }
-        public  OrderDetails OrderDetails { get; set; }
+        public  ICollection<OrderDetails> OrderDetails { get; set; }
         public  OrderStatus OrderStatus { get; set; }
         
     }
