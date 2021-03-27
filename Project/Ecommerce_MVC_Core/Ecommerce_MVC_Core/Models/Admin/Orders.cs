@@ -22,7 +22,7 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public  PaymentMethod PaymentMethod { get; set; }
         public  Location Location { get; set; }
         public  ICollection<OrderDetails> OrderDetails { get; set; }
-        public  OrderStatus OrderStatus { get; set; }
+        public  ICollection<OrderStatus> OrderStatus { get; set; }
         
     }
 

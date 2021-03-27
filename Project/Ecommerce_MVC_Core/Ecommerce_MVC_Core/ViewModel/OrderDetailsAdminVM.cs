@@ -11,6 +11,7 @@ namespace Ecommerce_MVC_Core.ViewModel
         public OrderDetailsAdminVM()
         {
             OrderProductLists = new List<OrderDetailsViewModel>();
+            OrderStatusList = new List<OrderStatusListVM>();
         }
         public long Id { get; set; }
         public string Number { get; set; }
@@ -25,5 +26,6 @@ namespace Ecommerce_MVC_Core.ViewModel
         public string PaymentMethod { get; set; }
 
         public List<OrderDetailsViewModel> OrderProductLists { get; set; }
+        public List<OrderStatusListVM> OrderStatusList { get; set; }
     }
 }

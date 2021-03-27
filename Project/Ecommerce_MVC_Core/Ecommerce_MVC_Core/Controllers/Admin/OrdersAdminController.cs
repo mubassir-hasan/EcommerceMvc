@@ -11,6 +11,7 @@ using Ecommerce_MVC_Core.ViewModel;
 using Ecommerce_MVC_Core.ViewModel.Public;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce_MVC_Core.Controllers.Admin
@@ -87,15 +88,21 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                 .Include(x => x.PaymentMethod)
                 .Include(x => x.Users)
                 .Include(x => x.OrderDetails)
+                .Include(x=>x.OrderStatus)
                 .FirstOrDefaultAsync(x=>x.Id==id);
             if (order != null)
             {
-
+                //find product from product details
                 var productIds = order.OrderDetails.Select(x => x.ProductId);
                 var productList = await _unitOfWork.Repository<Product>().Query()
                     .Include(p=>p.ProductImages)
                     .Include(x=>x.Brand)
                     .Where(x => productIds.Any(p => p == x.Id)).ToListAsync();
+                //find order status
+                var orderStatusIds = order.OrderStatus.Select(x => x.StatusId);
+                var orderStatusList = await _unitOfWork.Repository<Status>().Query().Where(x=>orderStatusIds.Any(o=>o==x.Id)).ToListAsync();
+
+
                 model.LocationName = order.Location.Name;
                 model.City = order.Location.City.Name;
                 model.Country = order.Location.City.Country.Name;
@@ -128,8 +135,53 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
                     }
                 }
 
+                //order status
+                foreach (var item in order.OrderStatus.OrderByDescending(x=>x.Id))
+                {
+                    var status = orderStatusList.FirstOrDefault(x=>x.Id==item.StatusId);
+                    model.OrderStatusList.Add(new OrderStatusListVM
+                    {
+                        Note = item.Note,
+                        OrderId = item.OrderId,
+                        StatusId = item.StatusId,
+                        StatusName = status.Name,
+                        Date=item.AddedDate
+                    });
+                }
+
             }
             return View(model);
+        }
+
+        public async Task<IActionResult> AddStatus(int orderId)
+        {
+            var model = new OrderStatusListVM();
+            model.OrderId = orderId;
+            var statusList = await _unitOfWork.Repository<Status>().GetAllAsync();
+            ViewBag.StatusList = statusList.Select(x => new SelectListItem
+            {
+                Text = x.Name,
+                Value = x.Id.ToString()
+            });
+            return PartialView(model);
+        }
+        [HttpPost]
+        public async Task<IActionResult> AddStatus(OrderStatusListVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return PartialView( model);
+            }
+            var entity = new OrderStatus
+            {
+                Note = model.Note,
+                OrderId = model.OrderId,
+                StatusId = model.StatusId,
+                UserId = _userManager.GetUserId(User),
+
+            };
+            await _unitOfWork.Repository<OrderStatus>().InsertAsync(entity);
+            return RedirectToAction("details", new { id = model.OrderId });
         }
     }
 }

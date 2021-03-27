@@ -14,6 +14,7 @@ namespace Ecommerce_MVC_Core.Models.Admin
         public int OrderId { get; set; }
         public int StatusId { get; set; }
         public string UserId { get; set; }
+        public string Note { get; set; }
 
         public  Orders Orders { get; set; }
         public  Status Status { get; set; }
@@ -26,10 +27,10 @@ namespace Ecommerce_MVC_Core.Models.Admin
         {
             entityTypeBuilder.HasKey(x => x.Id);
             entityTypeBuilder.Property(x => x.AddedDate).HasDefaultValue(DateTime.Now);
-            entityTypeBuilder.HasOne(x => x.Orders).WithOne(x => x.OrderStatus)
-                .HasForeignKey<OrderStatus>(x => x.OrderId);
-            entityTypeBuilder.HasOne(x => x.Status).WithOne(x => x.OrderStatus)
-                .HasForeignKey<OrderStatus>(x => x.StatusId);
+            entityTypeBuilder.HasOne(x => x.Orders).WithMany(x => x.OrderStatus)
+                .HasForeignKey(x => x.OrderId);
+            entityTypeBuilder.HasOne(x => x.Status).WithMany(x => x.OrderStatus)
+                .HasForeignKey(x => x.StatusId);
             entityTypeBuilder.HasOne(x => x.Users).WithMany(x => x.OrderStatuses).HasForeignKey(x => x.UserId);
         }
     }

@@ -1,4 +1,7 @@
-﻿@model Ecommerce_MVC_Core.ViewModel.OrderDetailsAdminVM
+﻿@{ 
+    ViewBag.Title = "Order Details";
+}
+@model Ecommerce_MVC_Core.ViewModel.OrderDetailsAdminVM
 <div class="row">
     <div class="col-md-6 col-sm-12">
         <h4>Bill Information</h4>
@@ -38,7 +41,7 @@
                 </thead>
                 <tbody>
                     @{
-                        
+
                         foreach (var item in Model.OrderProductLists)
                         {
 
@@ -51,7 +54,7 @@
                                             <h4 class="media-heading"><a asp-controller="Home" asp-action="ProductDetails" asp-route-product="@item.ProductId">@item.ProductName</a></h4>
                                             <h5 class="media-heading"> by <a href="#">@item.BrandName</a></h5>
 
-                                            
+
                                         </div>
                                     </div>
                                 </td>
@@ -60,7 +63,7 @@
                                 </td>
                                 <td class="col-sm-1 col-md-1 text-center"><strong class="price">@item.FinalPrice</strong></td>
                                 <td class="col-sm-1 col-md-1 text-center"><strong class="total">@item.FinalPrice</strong></td>
-                               
+
                             </tr>
 
 
@@ -75,7 +78,7 @@
                         <td></td>
                         <td></td>
                         <td class="text-center">Total</td>
-                        <td class="text-center"  >
+                        <td class="text-center">
                             @Model.OrderProductLists.Sum(x => x.FinalPrice)
                         </td>
                     </tr>
@@ -84,3 +87,40 @@
         </div>
     </div>
 </div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h4>Order Status</h4>
+        <hr />
+        <div >
+            <a id="createModel" data-toggle="modal" asp-controller="OrdersAdmin" asp-action="AddStatus" asp-route-orderId="@Model.Id" class="btn btn-info" data-target="#modal-popUP">
+                <i class="glyphicon glyphicon-plus"></i>Add Status
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <td>Date</td>
+                        <td>Status</td>
+                        <td>Note</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderStatusList)
+                    {
+                        <tr>
+                            <td>@item.Date</td>
+                            <td>@item.StatusName</td>
+                            <td>@item.Note</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("_Modal", new BootstrapModel { ID = "modal-popUP", AreaLabeledId = "modal-popUP-label", Size = ModalSize.Medium })
+
+<script src="~/js/ModalPopup.js"></script>

@@ -1,0 +1,28 @@
+﻿@model Ecommerce_MVC_Core.ViewModel.OrderStatusListVM
+<form asp-action="AddStatus" id="frmBrand">
+    <input type="hidden" asp-for="OrderId" />
+    <div class="form-horizontal">
+        @await Html.PartialAsync("_ModalHeader", new ModalHeader { Heading = $"Add Status" })
+        <hr />
+        <div class="text-danger" asp-validation-summary="ModelOnly"></div>
+
+        <div class="form-group">
+            <label asp-for="Note" class="col-md-3 control-label"></label>
+            <div class="col-md-8">
+                <input asp-for="Note" class="form-control" autofocus="" />
+                <span asp-validation-for="Note" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label  class="col-md-3 control-label">Status</label>
+            <div class="col-md-8">
+                <select class="form-control" asp-for="StatusId" asp-items="ViewBag.StatusList"></select>
+            </div>
+        </div>
+
+
+
+    </div>
+    @await Html.PartialAsync("_ModalFooter", new ModalFooter { })
+</form>
