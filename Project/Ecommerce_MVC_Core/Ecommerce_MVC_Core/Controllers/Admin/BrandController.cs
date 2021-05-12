@@ -110,7 +110,7 @@ namespace Ecommerce_MVC_Core.Controllers.Admin
             Brand brand = await _unitOfWork.Repository<Brand>().GetByIdAsync(id);
             if (brand!=null)
             {
-                await _unitOfWork.Repository<Brand>().DeleteAsync(brand);
+                var res=await _unitOfWork.Repository<Brand>().DeleteAsync(brand);
 
             }
             return RedirectToAction("Index");
